@@ -1,0 +1,5 @@
+# Google API Configuration
+GOOGLE_API_KEY=your-google-api-key-here
+
+# Replace 'your-google-api-key-here' with your actual Google API key
+# You can get one from: https://makersuite.google.com/app/apikey 

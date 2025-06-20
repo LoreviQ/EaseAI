@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PresentAI - AI Presentation Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            padding: 40px 0;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+        }
+        
+        .input-section {
+            padding: 40px;
+            background: #f8f9ff;
+        }
+        
+        .output-section {
+            padding: 40px;
+            background: white;
+            border-left: 1px solid #e0e6ed;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2d3748;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+        
+        .file-upload.dragover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-upload-text {
+            font-size: 1rem;
+            color: #718096;
+            margin-top: 10px;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-card {
+            display: none;
+            background: #f0f7ff;
+            border: 2px solid #bee3f8;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2b6cb0;
+            margin-bottom: 15px;
+        }
+        
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2b6cb0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        .view-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .view-btn {
+            padding: 10px 20px;
+            background: white;
+            color: #2b6cb0;
+            border: 2px solid #2b6cb0;
+            border-radius: 8px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .view-btn:hover {
+            background: #2b6cb0;
+            color: white;
+        }
+        
+        .features {
+            background: white;
+            margin-top: 50px;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 12px;
+            background: #f8f9ff;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        .feature-desc {
+            color: #718096;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 PresentAI</h1>
+            <p>Transform your ideas into stunning presentations with AI</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">Create Your Presentation</h2>
+                
+                <form id="presentationForm">
+                    <div class="form-group">
+                        <label class="form-label" for="prompt">Presentation Topic & Requirements</label>
+                        <textarea 
+                            id="prompt" 
+                            name="prompt" 
+                            class="form-textarea" 
+                            placeholder="Describe your presentation topic, target audience, key points to cover, and any specific requirements..."
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Supporting Documents (Optional)</label>
+                        <div class="file-upload" id="fileUpload">
+                            <div style="font-size: 2rem; color: #cbd5e0;">📁</div>
+                            <div class="file-upload-text">
+                                Drop files here or click to browse<br>
+                                <small>Supports: PDF, Word, Excel, Text files</small>
+                            </div>
+                            <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls">
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        ✨ Generate Presentation
+                    </button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating your presentation...</p>
+                    <small>This may take 1-2 minutes</small>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2 class="section-title">Generated Presentation</h2>
+                
+                <div id="placeholder" style="text-align: center; color: #a0aec0; padding: 60px 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🎨</div>
+                    <p>Your generated presentation will appear here</p>
+                </div>
+                
+                <div class="result-card" id="resultCard">
+                    <h3 class="result-title" id="resultTitle">Presentation Generated!</h3>
+                    
+                    <div class="result-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="slideCount">-</div>
+                            <div class="stat-label">Slides</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">3</div>
+                            <div class="stat-label">Components</div>
+                        </div>
+                    </div>
+                    
+                    <div class="view-buttons" id="viewButtons">
+                        <a href="#" class="view-btn" id="viewSlides">📊 View Slides</a>
+                        <a href="#" class="view-btn" id="viewNotes">📝 Speaker Notes</a>
+                        <a href="#" class="view-btn" id="viewScript">🎤 Script</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2 class="section-title" style="text-align: center;">Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI-Powered Generation</h3>
+                    <p class="feature-desc">Uses advanced LangGraph AI to create compelling presentations from your ideas</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3 class="feature-title">Document Processing</h3>
+                    <p class="feature-desc">Upload supporting documents to enhance your presentation content</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Beautiful Design</h3>
+                    <p class="feature-desc">Generates visually stunning HTML slides with modern styling</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">Complete Package</h3>
+                    <p class="feature-desc">Get slides, speaker notes, and a presentation script all in one</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedFiles = [];
+        let currentPresentationId = null;
+        
+        // File upload handling
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        
+        fileUpload.addEventListener('click', () => fileInput.click());
+        fileUpload.addEventListener('dragover', handleDragOver);
+        fileUpload.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        }
+        
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+        
+        function handleFiles(files) {
+            selectedFiles = [...selectedFiles, ...Array.from(files)];
+            updateFileList();
+        }
+        
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📄 ${file.name}</span>
+                    <button type="button" onclick="removeFile(${index})" style="background: none; border: none; color: #e53e3e; cursor: pointer;">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+        
+        // Form submission
+        document.getElementById('presentationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const prompt = document.getElementById('prompt').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const placeholder = document.getElementById('placeholder');
+            const resultCard = document.getElementById('resultCard');
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            loading.style.display = 'block';
+            placeholder.style.display = 'none';
+            resultCard.style.display = 'none';
+            
+            try {
+                const formData = new FormData();
+                formData.append('prompt', prompt);
+                
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+                
+                const response = await fetch('/generate-presentation', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show results
+                currentPresentationId = result.presentation_id;
+                document.getElementById('resultTitle').textContent = result.title;
+                document.getElementById('slideCount').textContent = result.slide_count;
+                
+                // Update view buttons
+                document.getElementById('viewSlides').href = `/presentation/${result.presentation_id}/slides`;
+                document.getElementById('viewSlides').target = '_blank';
+                document.getElementById('viewNotes').onclick = () => showNotes(result.presentation_id);
+                document.getElementById('viewScript').onclick = () => showScript(result.presentation_id);
+                
+                loading.style.display = 'none';
+                resultCard.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                loading.style.display = 'none';
+                placeholder.style.display = 'block';
+                alert('Failed to generate presentation. Please try again.');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+        
+        async function showNotes(presentationId) {
+            try {
+                const response = await fetch(`/presentation/${presentationId}/notes`);
+                const data = await response.json();
+                
+                const newWindow = window.open('', '_blank', 'width=800,height=600');
+                newWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Speaker Notes - ${data.presentation_title}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+                                h1 { color: #2b6cb0; }
+                                pre { white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>Speaker Notes</h1>
+                            <h2>${data.presentation_title}</h2>
+                            <pre>${data.speaker_notes}</pre>
+                        </body>
+                    </html>
+                `);
+            } catch (error) {
+                alert('Failed to load speaker notes');
+            }
+        }
+        
+        async function showScript(presentationId) {
+            try {
+                const response = await fetch(`/presentation/${presentationId}/script`);
+                const data = await response.json();
+                
+                const newWindow = window.open('', '_blank', 'width=800,height=600');
+                newWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Presentation Script - ${data.presentation_title}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.8; }
+                                h1 { color: #2b6cb0; }
+                                pre { white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>Presentation Script</h1>
+                            <h2>${data.presentation_title}</h2>
+                            <pre>${data.script}</pre>
+                        </body>
+                    </html>
+                `);
+            } catch (error) {
+                alert('Failed to load presentation script');
+            }
+        }
+    </script>
+</body>
+</html> 
