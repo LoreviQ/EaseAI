@@ -24,15 +24,21 @@ The project aims to create an AI agent that helps users create comprehensive pre
 - **Python 3.11+**: Core language
 - **UV**: Package and environment management
 - **LangGraph**: AI agent workflow framework
+- **FastAPI**: API dependency
+- **SQLAlchemy**: Database ORM tool
+- **Alembic**: Database migration management
 
 ## Project Structure
 
 ```
-src/easeai/           # Main package
+src/app.py            # FastAPI Entrypoint
+src/database/         # Database module
+src/routes/           # FastAPI Routers
+src/types/            # Type definitions
+src/utils/            # Utility modules
 tests/                # Test suite
-main.py               # Project entry point script
 ```
 
 ## Architecture Notes
-- Entry point is through `main.py` which sets up logger and imports from `src.easeai.main`
+- Entry point is `uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload`
 - Use the 'easeai' logger (logger = logging.getLogger("easeai"))

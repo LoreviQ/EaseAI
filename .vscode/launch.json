@@ -11,7 +11,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "src.easeai.app:app",
+                "src.app:app",
                 "--host",
                 "0.0.0.0",
                 "--port",
