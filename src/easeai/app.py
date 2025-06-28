@@ -6,7 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import diagnostics_router
+from .utils.logger import setup_logger
 
+setup_logger("easeai", logging.DEBUG)
 logger = logging.getLogger("easeai")
 
 app = FastAPI(
@@ -24,3 +26,4 @@ app.add_middleware(
 )
 
 app.include_router(diagnostics_router)
+logger.info("Initialized EaseAI API")
