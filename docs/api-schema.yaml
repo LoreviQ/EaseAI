@@ -1,0 +1,896 @@
+openapi: 3.0.3
+info:
+  title: EaseAI API
+  description: AI-powered presentation creation assistant API
+  version: 1.0.0
+  contact:
+    name: EaseAI Team
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.easeai.com
+    description: Production server
+
+paths:
+  # Project Management
+  /projects:
+    post:
+      summary: Create new presentation project
+      tags: [Projects]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Initial project title
+                description:
+                  type: string
+                  description: Brief project description
+              required: [title]
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    get:
+      summary: List user's projects
+      tags: [Projects]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectSummary'
+                  total:
+                    type: integer
+
+  /projects/{projectId}:
+    get:
+      summary: Get project details
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    patch:
+      summary: Update project metadata
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      summary: Delete project
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted
+
+  # Conversational Research Phase
+  /projects/{projectId}/messages:
+    post:
+      summary: Send message to AI agent
+      tags: [Research]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: User message or question
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                    description: Document IDs to reference
+              required: [message]
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationMessage'
+    get:
+      summary: Get conversation history
+      tags: [Research]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConversationMessage'
+                  total:
+                    type: integer
+                  has_more:
+                    type: boolean
+
+  # Document Management
+  /projects/{projectId}/documents:
+    post:
+      summary: Upload research document
+      tags: [Documents]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                description:
+                  type: string
+              required: [file]
+      responses:
+        '201':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    get:
+      summary: List project documents
+      tags: [Documents]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+
+  /projects/{projectId}/documents/{documentId}:
+    get:
+      summary: Get document details
+      tags: [Documents]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      summary: Delete document
+      tags: [Documents]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Document deleted
+
+  # Presentation Plan
+  /projects/{projectId}/plan:
+    get:
+      summary: Get presentation plan
+      tags: [Plan]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Presentation plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresentationPlan'
+        '404':
+          description: Plan not yet generated
+    patch:
+      summary: Update presentation plan
+      tags: [Plan]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresentationPlanUpdate'
+      responses:
+        '200':
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresentationPlan'
+
+  /projects/{projectId}/plan/approve:
+    post:
+      summary: Approve plan and move to content production
+      tags: [Plan]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Plan approved, moving to content production
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  # Content Production - Slides
+  /projects/{projectId}/slides:
+    get:
+      summary: Get presentation slides
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Presentation slides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slides'
+        '404':
+          description: Slides not yet generated
+    patch:
+      summary: Update slides content
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlidesUpdate'
+      responses:
+        '200':
+          description: Slides updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slides'
+
+  /projects/{projectId}/slides/regenerate:
+    post:
+      summary: Regenerate slides based on plan changes
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                instructions:
+                  type: string
+                  description: Specific instructions for regeneration
+      responses:
+        '200':
+          description: Slides regenerated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slides'
+
+  # Content Production - Speaker Notes
+  /projects/{projectId}/speaker-notes:
+    get:
+      summary: Get speaker notes
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Speaker notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerNotes'
+        '404':
+          description: Speaker notes not yet generated
+    patch:
+      summary: Update speaker notes
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerNotesUpdate'
+      responses:
+        '200':
+          description: Speaker notes updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerNotes'
+
+  # Content Production - Delivery Tutorial
+  /projects/{projectId}/tutorial:
+    get:
+      summary: Get delivery tutorial
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Delivery tutorial
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryTutorial'
+        '404':
+          description: Tutorial not yet generated
+    patch:
+      summary: Update delivery tutorial
+      tags: [Content]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryTutorialUpdate'
+      responses:
+        '200':
+          description: Tutorial updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryTutorial'
+
+  # Status and Progress
+  /projects/{projectId}/status:
+    get:
+      summary: Get project status and progress
+      tags: [Status]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+
+  # Export functionality
+  /projects/{projectId}/export:
+    post:
+      summary: Export presentation in various formats
+      tags: [Export]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [pdf, pptx, html, json]
+                include_speaker_notes:
+                  type: boolean
+                  default: true
+                include_tutorial:
+                  type: boolean
+                  default: true
+              required: [format]
+      responses:
+        '200':
+          description: Export file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+components:
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        phase:
+          $ref: '#/components/schemas/ProjectPhase'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          properties:
+            estimated_duration:
+              type: integer
+              description: Estimated presentation duration in minutes
+            target_audience:
+              type: string
+            presentation_type:
+              type: string
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        phase:
+          $ref: '#/components/schemas/ProjectPhase'
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectPhase:
+      type: string
+      enum:
+        - research
+        - planning
+        - content_production
+        - completed
+
+    ProjectStatus:
+      type: object
+      properties:
+        phase:
+          $ref: '#/components/schemas/ProjectPhase'
+        progress:
+          type: object
+          properties:
+            research_complete:
+              type: boolean
+            plan_approved:
+              type: boolean
+            slides_generated:
+              type: boolean
+            speaker_notes_generated:
+              type: boolean
+            tutorial_generated:
+              type: boolean
+        next_steps:
+          type: array
+          items:
+            type: string
+
+    ConversationMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        file_type:
+          type: string
+        file_size:
+          type: integer
+        upload_date:
+          type: string
+          format: date-time
+        processing_status:
+          type: string
+          enum: [pending, processing, completed, failed]
+
+    PresentationPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        objective:
+          type: string
+        target_audience:
+          type: string
+        tone:
+          type: string
+          enum: [formal, informal, persuasive, educational, inspirational]
+        duration:
+          type: integer
+          description: Presentation duration in minutes
+        outline:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlideOutline'
+        key_messages:
+          type: array
+          items:
+            type: string
+        research_summary:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PresentationPlanUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        objective:
+          type: string
+        target_audience:
+          type: string
+        tone:
+          type: string
+          enum: [formal, informal, persuasive, educational, inspirational]
+        duration:
+          type: integer
+        outline:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlideOutline'
+        key_messages:
+          type: array
+          items:
+            type: string
+
+    SlideOutline:
+      type: object
+      properties:
+        slide_number:
+          type: integer
+        title:
+          type: string
+        content_summary:
+          type: string
+        slide_type:
+          type: string
+          enum: [title, content, image, chart, quote, transition]
+        estimated_time:
+          type: integer
+          description: Estimated time to spend on this slide in seconds
+
+    Slides:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slides:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slide'
+        template_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Slide:
+      type: object
+      properties:
+        slide_number:
+          type: integer
+        title:
+          type: string
+        content:
+          type: object
+          description: Flexible content structure for different slide types
+        layout:
+          type: string
+        transitions:
+          type: object
+        speaker_cues:
+          type: array
+          items:
+            type: string
+
+    SlidesUpdate:
+      type: object
+      properties:
+        slides:
+          type: array
+          items:
+            type: object
+            properties:
+              slide_number:
+                type: integer
+              title:
+                type: string
+              content:
+                type: object
+              layout:
+                type: string
+
+    SpeakerNotes:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpeakerNoteSection'
+        talking_points:
+          type: array
+          items:
+            type: string
+        q_and_a:
+          type: array
+          items:
+            $ref: '#/components/schemas/QandA'
+        generated_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SpeakerNoteSection:
+      type: object
+      properties:
+        slide_number:
+          type: integer
+        detailed_notes:
+          type: string
+        key_points:
+          type: array
+          items:
+            type: string
+        timing_notes:
+          type: string
+        transition_notes:
+          type: string
+
+    SpeakerNotesUpdate:
+      type: object
+      properties:
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpeakerNoteSection'
+        talking_points:
+          type: array
+          items:
+            type: string
+
+    QandA:
+      type: object
+      properties:
+        question:
+          type: string
+        suggested_answer:
+          type: string
+        follow_up_questions:
+          type: array
+          items:
+            type: string
+
+    DeliveryTutorial:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        introduction:
+          type: string
+        preparation_tips:
+          type: array
+          items:
+            type: string
+        delivery_techniques:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryTechnique'
+        practice_exercises:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeExercise'
+        troubleshooting:
+          type: array
+          items:
+            $ref: '#/components/schemas/TroubleshootingTip'
+        generated_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DeliveryTechnique:
+      type: object
+      properties:
+        technique:
+          type: string
+        description:
+          type: string
+        when_to_use:
+          type: string
+        example:
+          type: string
+
+    PracticeExercise:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+          description: Exercise duration in minutes
+        materials_needed:
+          type: array
+          items:
+            type: string
+
+    TroubleshootingTip:
+      type: object
+      properties:
+        scenario:
+          type: string
+        solution:
+          type: string
+        prevention:
+          type: string
+
+    DeliveryTutorialUpdate:
+      type: object
+      properties:
+        introduction:
+          type: string
+        preparation_tips:
+          type: array
+          items:
+            type: string
+        delivery_techniques:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryTechnique'
+
+tags:
+  - name: Projects
+    description: Project management operations
+  - name: Research
+    description: Conversational research phase
+  - name: Documents
+    description: Document upload and management
+  - name: Plan
+    description: Presentation plan management
+  - name: Content
+    description: Content production (slides, notes, tutorial)
+  - name: Status
+    description: Project status and progress tracking
+  - name: Export
+    description: Export and download functionality
