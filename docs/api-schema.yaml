@@ -13,6 +13,28 @@ servers:
     description: Production server
 
 paths:
+  # Health Check
+  /health:
+    get:
+      summary: API health check
+      tags: [Health]
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+
   # Project Management
   /projects:
     post:
@@ -880,6 +902,8 @@ components:
             $ref: '#/components/schemas/DeliveryTechnique'
 
 tags:
+  - name: Health
+    description: API health check
   - name: Projects
     description: Project management operations
   - name: Research
