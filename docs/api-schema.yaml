@@ -164,7 +164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConversationMessage'
+                $ref: '#/components/schemas/Message'
     get:
       summary: Get conversation history
       tags: [Research]
@@ -585,7 +585,7 @@ components:
           items:
             type: string
 
-    ConversationMessage:
+    Message:
       type: object
       properties:
         id:
