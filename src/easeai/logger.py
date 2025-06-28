@@ -13,16 +13,13 @@ except ImportError:
 
 def setup_logger(
     name: str = "easeai", level: int = logging.INFO, log_file: Optional[str] = None
-) -> logging.Logger:
+) -> None:
     """Set up a custom logger with colorlog formatting.
 
     Args:
         name: Logger name
         level: Logging level
         log_file: Optional file to log to
-
-    Returns:
-        Configured logger instance
     """
     logger = logging.getLogger(name)
 
@@ -71,5 +68,3 @@ def setup_logger(
         )
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
-
-    return logger

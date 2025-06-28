@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EaseAI is an AI-powered presentation creation assistant built with Python, managed by UV, and using LangChain for AI agent functionality.
+EaseAI is an AI-powered presentation creation assistant built with Python, managed by UV, and using LangGraph for AI agent functionality.
 
 ### Long-term Vision
 
@@ -24,66 +24,15 @@ The project aims to create an AI agent that helps users create comprehensive pre
 - **Python 3.11+**: Core language
 - **UV**: Package and environment management
 - **LangGraph**: AI agent workflow framework
-- **colorlog**: Custom logging with colored output
-- **pytest**: Testing framework
-- **mypy**: Type checking
-- **ruff**: Linting and code formatting
 
 ## Project Structure
 
 ```
 src/easeai/           # Main package
-├── __init__.py       # Package initialization
-├── main.py           # Main entry point with hello world demo
-└── logger.py         # Custom logger setup with colorlog
-
 tests/                # Test suite
-├── test_main.py      # Tests for main module
-└── test_logger.py    # Tests for logger module
-
 main.py               # Project entry point script
 ```
 
-## Development Commands
-
-### Environment Setup
-```bash
-uv sync                    # Install dependencies
-uv sync --dev              # Install with dev dependencies
-```
-
-### Running Code
-```bash
-uv run python main.py      # Run the main entry point
-uv run python -m easeai.main  # Run main module directly
-```
-
-### Testing
-```bash
-uv run pytest             # Run all tests
-uv run pytest tests/ -v   # Run tests with verbose output
-uv run pytest tests/test_main.py  # Run specific test file
-```
-
-### Code Quality
-```bash
-uv run mypy src/          # Type checking
-uv run ruff check         # Linting
-uv run ruff format        # Code formatting
-```
-
-## Logger Configuration
-
-The project uses a custom logger with colorlog that outputs formatted messages:
-- Format: `[timestamp] [level] message`
-- Colored output for different log levels
-- Supports both console and file logging
-- Accessible via `from easeai.logger import setup_logger`
-
 ## Architecture Notes
-
-- Entry point is through `main.py` which imports from `src.easeai.main`
-- Logger is designed to be imported and used throughout the application
-- Tests are comprehensive and include mocking for external dependencies
-- Type hints are enforced via mypy configuration
-- Code style is managed by ruff
+- Entry point is through `main.py` which sets up logger and imports from `src.easeai.main`
+- Use the 'easeai' logger (logger = logging.getLogger("easeai"))
