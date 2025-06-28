@@ -3,7 +3,7 @@
 import logging
 from unittest.mock import patch
 
-from easeai.logger import setup_logger
+from easeai.utils.logger import setup_logger
 
 
 def test_setup_logger_creates_logger():

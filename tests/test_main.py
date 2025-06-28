@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from easeai.main import main
+from easeai.app import main
 
 
 def test_main_function_runs():
