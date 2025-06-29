@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from ..types import ProcessingStatus, ProjectPhase
+from src.types import ProcessingStatus, ProjectPhase
 
 Base = declarative_base()
 

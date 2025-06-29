@@ -6,17 +6,14 @@ from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from .messages_adapter import MessagesAdapter
 from .projects_adapter import ProjectsAdapter
 from .sql_models import Base
 
 __all__ = [
-    "Base",
+    "MessagesAdapter",
     "ProjectsAdapter",
-    "create_tables",
-    "get_db_session",
     "get_db",
-    "engine",
-    "SessionLocal",
 ]
 
 logger = logging.getLogger("easeai")
