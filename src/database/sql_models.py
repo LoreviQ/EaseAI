@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,62 +11,69 @@ from ..types import ProcessingStatus, ProjectPhase
 Base = declarative_base()
 
 
-class Project(Base):
+class ProjectORM(Base):
     __tablename__ = "projects"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(255), nullable=False)
     description = Column(Text)
     phase = Column(String(50), default=ProjectPhase.PREPARATION)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
     project_metadata = Column(JSON)
 
     # Relationships
     messages = relationship(
-        "Message", back_populates="project", cascade="all, delete-orphan"
+        "MessageORM", back_populates="project", cascade="all, delete-orphan"
     )
     documents = relationship(
-        "Document", back_populates="project", cascade="all, delete-orphan"
+        "DocumentORM", back_populates="project", cascade="all, delete-orphan"
     )
     plan = relationship(
-        "PresentationPlan",
+        "PresentationPlanORM",
         back_populates="project",
         uselist=False,
         cascade="all, delete-orphan",
     )
     slides = relationship(
-        "Slides", back_populates="project", uselist=False, cascade="all, delete-orphan"
+        "SlidesORM",
+        back_populates="project",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
     speaker_notes = relationship(
-        "SpeakerNotes",
+        "SpeakerNotesORM",
         back_populates="project",
         uselist=False,
         cascade="all, delete-orphan",
     )
     delivery_tutorial = relationship(
-        "DeliveryTutorial",
+        "DeliveryTutorialORM",
         back_populates="project",
         uselist=False,
         cascade="all, delete-orphan",
     )
 
 
-class Message(Base):
+class MessageORM(Base):
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     attachments = Column(JSON)
 
     # Relationships
-    project = relationship("Project", back_populates="messages")
+    project = relationship("ProjectORM", back_populates="messages")
 
 
-class Document(Base):
+class DocumentORM(Base):
     __tablename__ = "documents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -75,15 +82,15 @@ class Document(Base):
     description = Column(Text)
     file_type = Column(String(50))
     file_size = Column(Integer)
-    upload_date = Column(DateTime, default=datetime.utcnow)
+    upload_date = Column(DateTime, default=datetime.now(timezone.utc))
     processing_status = Column(String(20), default=ProcessingStatus.PENDING)
     file_path = Column(String(500))
 
     # Relationships
-    project = relationship("Project", back_populates="documents")
+    project = relationship("ProjectORM", back_populates="documents")
 
 
-class PresentationPlan(Base):
+class PresentationPlanORM(Base):
     __tablename__ = "presentation_plans"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -96,28 +103,36 @@ class PresentationPlan(Base):
     outline = Column(JSON)
     key_messages = Column(JSON)
     research_summary = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
 
     # Relationships
-    project = relationship("Project", back_populates="plan")
+    project = relationship("ProjectORM", back_populates="plan")
 
 
-class Slides(Base):
+class SlidesORM(Base):
     __tablename__ = "slides"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     slides_data = Column(JSON)
     template_id = Column(String(100))
-    generated_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
 
     # Relationships
-    project = relationship("Project", back_populates="slides")
+    project = relationship("ProjectORM", back_populates="slides")
 
 
-class SpeakerNotes(Base):
+class SpeakerNotesORM(Base):
     __tablename__ = "speaker_notes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -125,14 +140,18 @@ class SpeakerNotes(Base):
     sections = Column(JSON)
     talking_points = Column(JSON)
     q_and_a = Column(JSON)
-    generated_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
 
     # Relationships
-    project = relationship("Project", back_populates="speaker_notes")
+    project = relationship("ProjectORM", back_populates="speaker_notes")
 
 
-class DeliveryTutorial(Base):
+class DeliveryTutorialORM(Base):
     __tablename__ = "delivery_tutorials"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -142,8 +161,12 @@ class DeliveryTutorial(Base):
     delivery_techniques = Column(JSON)
     practice_exercises = Column(JSON)
     troubleshooting = Column(JSON)
-    generated_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
 
     # Relationships
-    project = relationship("Project", back_populates="delivery_tutorial")
+    project = relationship("ProjectORM", back_populates="delivery_tutorial")
