@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import diagnostics_router, projects_router
+from .routes import v1
 from .utils.logger import setup_logger
 
 setup_logger("easeai", logging.DEBUG)
@@ -25,6 +25,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(diagnostics_router)
-app.include_router(projects_router)
+app.include_router(v1)
 logger.info("Initialized EaseAI API")
