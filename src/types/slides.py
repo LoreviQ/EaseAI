@@ -1,10 +1,23 @@
+from datetime import datetime
+from typing import Dict, List, Optional
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
 class Slide(BaseModel):
     slide_number: int
     title: str
-    content: dict
-    layout: str | None
-    transitions: dict | None
-    speaker_cues: list[str] | None
+    content: Dict
+    layout: Optional[str]
+    transitions: Optional[Dict]
+    speaker_cues: Optional[List[str]]
+
+
+class Slides(BaseModel):
+    id: UUID
+    project_id: UUID
+    slides: Optional[List[Slide]]
+    template_id: Optional[str]
+    generated_at: datetime
+    updated_at: datetime
