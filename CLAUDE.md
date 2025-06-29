@@ -42,3 +42,4 @@ tests/                # Test suite
 ## Architecture Notes
 - Entry point is `uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload`
 - Use the 'easeai' logger (logger = logging.getLogger("easeai"))
+- Run mypy to check for type issues after generating code

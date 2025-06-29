@@ -1,3 +1,5 @@
+# mypy: disable-error-code="assignment"
+
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID

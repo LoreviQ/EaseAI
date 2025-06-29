@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -26,7 +26,7 @@ class DeliveryTutorialResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_domain(cls, tutorial):
+    def from_domain(cls, tutorial: Any) -> "DeliveryTutorialResponse":
         return cls(
             id=tutorial.id,
             introduction=tutorial.introduction,
@@ -48,8 +48,8 @@ class DeliveryTutorialUpdate(BaseModel):
 @router.get("/", response_model=DeliveryTutorialResponse)
 def get_delivery_tutorial(
     project_id: UUID,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> DeliveryTutorialResponse:
     """Get delivery tutorial"""
     projects_adapter = ProjectsAdapter(db)
     tutorial_adapter = DeliveryTutorialAdapter(db)
@@ -68,8 +68,8 @@ def get_delivery_tutorial(
 def update_delivery_tutorial(
     project_id: UUID,
     request: DeliveryTutorialUpdate,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> DeliveryTutorialResponse:
     """Update delivery tutorial"""
     projects_adapter = ProjectsAdapter(db)
     tutorial_adapter = DeliveryTutorialAdapter(db)

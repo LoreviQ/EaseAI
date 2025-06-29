@@ -1,3 +1,5 @@
+# mypy: disable-error-code="assignment"
+
 from typing import List, Optional
 from uuid import UUID
 

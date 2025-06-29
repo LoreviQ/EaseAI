@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,7 +19,7 @@ class SlidesResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_domain(cls, slides_domain):
+    def from_domain(cls, slides_domain: Any) -> "SlidesResponse":
         slides_data = None
         if slides_domain.slides:
             slides_data = slides_domain.slides
@@ -44,8 +44,8 @@ class RegenerateRequest(BaseModel):
 @router.get("/", response_model=SlidesResponse)
 def get_slides(
     project_id: UUID,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> SlidesResponse:
     """Get presentation slides"""
     projects_adapter = ProjectsAdapter(db)
     slides_adapter = SlidesAdapter(db)
@@ -64,8 +64,8 @@ def get_slides(
 def update_slides(
     project_id: UUID,
     request: SlidesUpdate,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> SlidesResponse:
     """Update slides content"""
     projects_adapter = ProjectsAdapter(db)
     slides_adapter = SlidesAdapter(db)
@@ -87,9 +87,9 @@ def update_slides(
 @router.post("/regenerate", response_model=SlidesResponse)
 def regenerate_slides(
     project_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
     request: RegenerateRequest | None = None,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+) -> SlidesResponse:
     """Regenerate slides based on plan changes"""
     projects_adapter = ProjectsAdapter(db)
     slides_adapter = SlidesAdapter(db)

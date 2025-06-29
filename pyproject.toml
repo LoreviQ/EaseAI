@@ -20,6 +20,7 @@ dev = [
     "colorlog>=6.9.0",
     "mypy>=1.16.1",
     "pytest>=8.4.1",
+    "pytest-mypy>=0.10.3",
     "ruff>=0.12.1",
 ]
 
@@ -32,6 +33,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
 
 [tool.mypy]
 python_version = "3.11"

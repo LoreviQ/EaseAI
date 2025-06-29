@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -20,7 +20,7 @@ class SpeakerNotesResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_domain(cls, notes):
+    def from_domain(cls, notes: Any) -> "SpeakerNotesResponse":
         return cls(
             id=notes.id,
             sections=notes.sections,
@@ -39,8 +39,8 @@ class SpeakerNotesUpdate(BaseModel):
 @router.get("/", response_model=SpeakerNotesResponse)
 def get_speaker_notes(
     project_id: UUID,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> SpeakerNotesResponse:
     """Get speaker notes"""
     projects_adapter = ProjectsAdapter(db)
     notes_adapter = SpeakerNotesAdapter(db)
@@ -59,8 +59,8 @@ def get_speaker_notes(
 def update_speaker_notes(
     project_id: UUID,
     request: SpeakerNotesUpdate,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> SpeakerNotesResponse:
     """Update speaker notes"""
     projects_adapter = ProjectsAdapter(db)
     notes_adapter = SpeakerNotesAdapter(db)

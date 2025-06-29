@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,7 +25,7 @@ class ProjectResponse(BaseModel):
     metadata: dict | None
 
     @classmethod
-    def from_domain(cls, project):
+    def from_domain(cls, project: Any) -> "ProjectResponse":
         return cls(
             id=project.id,
             title=project.title,
@@ -44,7 +44,7 @@ class ProjectSummary(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_domain(cls, project):
+    def from_domain(cls, project: Any) -> "ProjectSummary":
         return cls(
             id=project.id,
             title=project.title,
@@ -61,7 +61,7 @@ class UpdateProjectRequest(BaseModel):
 @router.post("/", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 def create_project(
     request: CreateProjectRequest, db: Annotated[Session, Depends(get_db)]
-):
+) -> ProjectResponse:
     """Create new presentation project"""
     adapter = ProjectsAdapter(db)
 
@@ -74,10 +74,10 @@ def create_project(
 
 @router.get("/", response_model=dict)
 def get_projects(
+    db: Annotated[Session, Depends(get_db)],
     limit: int = 20,
     offset: int = 0,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+) -> dict[str, Any]:
     """List user's projects with pagination"""
     adapter = ProjectsAdapter(db)
 
@@ -90,7 +90,9 @@ def get_projects(
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-def get_project(project_id: UUID, db: Annotated[Session, Depends(get_db)]):
+def get_project(
+    project_id: UUID, db: Annotated[Session, Depends(get_db)]
+) -> ProjectResponse:
     """Get project details"""
     adapter = ProjectsAdapter(db)
 
@@ -106,7 +108,7 @@ def update_project(
     project_id: UUID,
     request: UpdateProjectRequest,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> ProjectResponse:
     """Update project metadata"""
     adapter = ProjectsAdapter(db)
 
@@ -123,7 +125,7 @@ def update_project(
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project_id: UUID, db: Annotated[Session, Depends(get_db)]):
+def delete_project(project_id: UUID, db: Annotated[Session, Depends(get_db)]) -> None:
     """Delete project"""
     adapter = ProjectsAdapter(db)
 

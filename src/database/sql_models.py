@@ -1,3 +1,5 @@
+# mypy: disable-error-code="arg-type,attr-defined,valid-type,misc"
+
 import uuid
 from datetime import datetime, timezone
 

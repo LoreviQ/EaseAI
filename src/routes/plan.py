@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,7 +25,7 @@ class PresentationPlanResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_domain(cls, plan):
+    def from_domain(cls, plan: Any) -> "PresentationPlanResponse":
         return cls(
             id=plan.id,
             title=plan.title,
@@ -54,8 +54,8 @@ class PresentationPlanUpdate(BaseModel):
 @router.get("/", response_model=PresentationPlanResponse)
 def get_presentation_plan(
     project_id: UUID,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> PresentationPlanResponse:
     """Get presentation plan"""
     projects_adapter = ProjectsAdapter(db)
     plan_adapter = PresentationPlanAdapter(db)
@@ -74,8 +74,8 @@ def get_presentation_plan(
 def update_presentation_plan(
     project_id: UUID,
     request: PresentationPlanUpdate,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> PresentationPlanResponse:
     """Update presentation plan"""
     projects_adapter = ProjectsAdapter(db)
     plan_adapter = PresentationPlanAdapter(db)
@@ -107,8 +107,8 @@ def update_presentation_plan(
 @router.post("/approve", response_model=dict)
 def approve_plan(
     project_id: UUID,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, Any]:
     """Approve plan and move to content production"""
     projects_adapter = ProjectsAdapter(db)
     plan_adapter = PresentationPlanAdapter(db)

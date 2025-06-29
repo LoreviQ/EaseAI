@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -23,7 +23,7 @@ class MessageResponse(BaseModel):
     attachments: list | None
 
     @classmethod
-    def from_domain(cls, message):
+    def from_domain(cls, message: Any) -> "MessageResponse":
         return cls(
             id=message.id,
             role=message.role,
@@ -38,7 +38,7 @@ def send_message(
     project_id: UUID,
     request: CreateMessageRequest,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> MessageResponse:
     """Send message to AI agent"""
     projects_adapter = ProjectsAdapter(db)
     messages_adapter = MessagesAdapter(db)
@@ -59,10 +59,10 @@ def send_message(
 @router.get("/", response_model=dict)
 def get_conversation_history(
     project_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
     limit: int = 50,
     offset: int = 0,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
+) -> dict[str, Any]:
     """Get conversation history"""
     projects_adapter = ProjectsAdapter(db)
     messages_adapter = MessagesAdapter(db)
