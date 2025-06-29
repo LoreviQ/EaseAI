@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -5,8 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from src.agents.workflow_agent import PresentationWorkflowAgent
 from src.database import MessagesAdapter, ProjectsAdapter, get_db
 
+logger = logging.getLogger("easeai")
 router = APIRouter(prefix="/projects/{project_id}/messages", tags=["Research"])
 
 
@@ -40,20 +43,28 @@ def send_message(
     db: Annotated[Session, Depends(get_db)],
 ) -> MessageResponse:
     """Send message to AI agent"""
+    logger.debug(f"Sending message to project {project_id}: {request.message}")
     projects_adapter = ProjectsAdapter(db)
     messages_adapter = MessagesAdapter(db)
 
     if not projects_adapter.project_exists(project_id):
         raise HTTPException(status_code=404, detail="Project not found")
 
-    message = messages_adapter.create_message(
+    messages_adapter.create_message(
         project_id=project_id,
         role="user",
         content=request.message,
         attachments=request.attachments,
     )
 
-    return MessageResponse.from_domain(message)
+    workflow_agent = PresentationWorkflowAgent(db)
+    result_state = workflow_agent.process_message(project_id)
+
+    if result_state.messages:
+        ai_message = result_state.messages[-1]
+        return MessageResponse.from_domain(ai_message)
+    else:
+        raise HTTPException(status_code=500, detail="No AI response generated")
 
 
 @router.get("/", response_model=dict)

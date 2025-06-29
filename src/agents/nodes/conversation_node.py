@@ -56,6 +56,7 @@ def conversation_node(state: WorkflowState, session: Session) -> WorkflowState:
         role = "user" if msg.role == MessageRole.USER else "ai"
         messages.append((role, msg.content))
 
+    logger.debug(messages)
     # Generate response
     try:
         response = model.invoke(messages)
@@ -67,13 +68,12 @@ def conversation_node(state: WorkflowState, session: Session) -> WorkflowState:
             role=MessageRole.ASSISTANT.value,
             content=response_content,
         )
-
-        # Update state with new message
-        state.messages.append(assistant_message)
-
         logger.info(f"Generated response for project {state.project_id}")
 
-        return state
+        # Update state with new message
+        return state.model_copy(
+            update={"messages": state.messages + [assistant_message]}
+        )
 
     except Exception as e:
         logger.error(f"Error generating response: {e}")

@@ -1,13 +1,14 @@
 import logging
-from typing import Any, Dict, Optional
 from uuid import UUID
 
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from sqlalchemy.orm import Session
 
+from src.database import ProjectsAdapter
 from src.types import ProjectPhase
 
+from .config import GENERATION_CONFIG, SYSTEM_PROMPT
 from .nodes import content_node, conversation_node, review_node
 from .state import WorkflowState
 
@@ -83,12 +84,10 @@ class PresentationWorkflowAgent:
 
     def _route_from_conversation(self, state: WorkflowState) -> str:
         """Determine next step from conversation phase."""
-        current_phase = state.phase
-
-        # For now, stay in conversation mode for all phases
+        # For single-turn conversations, end after generating response
         # TODO: Add logic to transition to content generation
         # when research and planning are complete
-        return "conversation"
+        return "end"
 
     def _route_from_content(self, state: WorkflowState) -> str:
         """Determine next step from content generation phase."""
@@ -103,38 +102,35 @@ class PresentationWorkflowAgent:
         # - End if everything is approved
         return "end"
 
-    def process_message(
-        self,
-        project_id: UUID,
-        phase: ProjectPhase = ProjectPhase.PREPARATION,
-        system_prompt: str = "You are a helpful AI assistant that helps users create presentations.",
-        generation_config: Optional[Dict[str, Any]] = None,
-    ) -> WorkflowState:
+    def process_message(self, project_id: UUID) -> WorkflowState:
         """
         Process a user message and generate a response.
 
         Args:
             project_id: UUID of the project
-            phase: Current project phase
-            system_prompt: System prompt for the AI
-            generation_config: Optional generation parameters for the model
 
         Returns:
             Updated workflow state with AI response
         """
+        projects_adapter = ProjectsAdapter(self.session)
+        project = projects_adapter.get_project(project_id)
+
+        if not project:
+            raise ValueError(f"Project {project_id} not found")
+
         initial_state = WorkflowState(
             project_id=project_id,
-            phase=phase,
+            phase=ProjectPhase(project.phase),
             messages=[],
-            system_prompt=system_prompt,
+            system_prompt=SYSTEM_PROMPT,
             context={},
-            generation_config=generation_config if generation_config else {},
+            generation_config=GENERATION_CONFIG,
         )
 
         try:
             result = self.graph.invoke(initial_state)
             logger.info(f"Processed message for project {project_id}")
-            return result  # type: ignore
+            return WorkflowState(**result)
 
         except Exception as e:
             logger.error(f"Error processing message for project {project_id}: {e}")
