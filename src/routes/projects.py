@@ -25,7 +25,7 @@ class ProjectResponse(BaseModel):
     metadata: dict | None
 
     @classmethod
-    def from_orm(cls, project):
+    def from_domain(cls, project):
         return cls(
             id=project.id,
             title=project.title,
@@ -44,7 +44,7 @@ class ProjectSummary(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_orm(cls, project):
+    def from_domain(cls, project):
         return cls(
             id=project.id,
             title=project.title,
@@ -69,7 +69,7 @@ def create_project(
         title=request.title, description=request.description
     )
 
-    return ProjectResponse.from_orm(project)
+    return ProjectResponse.from_domain(project)
 
 
 @router.get("/", response_model=dict)
@@ -84,7 +84,7 @@ def get_projects(
     projects, total = adapter.get_projects(limit=limit, offset=offset)
 
     return {
-        "projects": [ProjectSummary.from_orm(project) for project in projects],
+        "projects": [ProjectSummary.from_domain(project) for project in projects],
         "total": total,
     }
 
@@ -98,7 +98,7 @@ def get_project(project_id: UUID, db: Annotated[Session, Depends(get_db)]):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    return ProjectResponse.from_orm(project)
+    return ProjectResponse.from_domain(project)
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)
@@ -119,7 +119,7 @@ def update_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    return ProjectResponse.from_orm(project)
+    return ProjectResponse.from_domain(project)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

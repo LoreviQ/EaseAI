@@ -23,7 +23,7 @@ class MessageResponse(BaseModel):
     attachments: list | None
 
     @classmethod
-    def from_orm(cls, message):
+    def from_domain(cls, message):
         return cls(
             id=message.id,
             role=message.role,
@@ -53,7 +53,7 @@ def send_message(
         attachments=request.attachments,
     )
 
-    return MessageResponse.from_orm(message)
+    return MessageResponse.from_domain(message)
 
 
 @router.get("/", response_model=dict)
@@ -75,7 +75,7 @@ def get_conversation_history(
     )
 
     return {
-        "messages": [MessageResponse.from_orm(message) for message in messages],
+        "messages": [MessageResponse.from_domain(message) for message in messages],
         "total": total,
         "has_more": (offset + limit) < total,
     }

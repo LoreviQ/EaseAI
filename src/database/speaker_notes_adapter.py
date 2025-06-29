@@ -4,6 +4,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.types import SpeakerNotes
+
 from .sql_models import SpeakerNotesORM
 
 
@@ -11,12 +13,13 @@ class SpeakerNotesAdapter:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_speaker_notes(self, project_id: UUID) -> Optional[SpeakerNotesORM]:
-        return (
+    def get_speaker_notes(self, project_id: UUID) -> Optional[SpeakerNotes]:
+        notes = (
             self.session.query(SpeakerNotesORM)
             .filter(SpeakerNotesORM.project_id == project_id)
             .first()
         )
+        return notes.domain if notes else None
 
     def update_speaker_notes(
         self,
@@ -24,8 +27,12 @@ class SpeakerNotesAdapter:
         sections: Optional[list] = None,
         talking_points: Optional[list] = None,
         q_and_a: Optional[list] = None,
-    ) -> Optional[SpeakerNotesORM]:
-        notes = self.get_speaker_notes(project_id)
+    ) -> Optional[SpeakerNotes]:
+        notes = (
+            self.session.query(SpeakerNotesORM)
+            .filter(SpeakerNotesORM.project_id == project_id)
+            .first()
+        )
         if not notes:
             return None
 
@@ -38,7 +45,7 @@ class SpeakerNotesAdapter:
 
         notes.updated_at = datetime.now(timezone.utc)
         self.session.flush()
-        return notes
+        return notes.domain
 
     def speaker_notes_exist(self, project_id: UUID) -> bool:
         return (

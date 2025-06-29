@@ -26,33 +26,14 @@ class DeliveryTutorialResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_orm(cls, tutorial):
-        delivery_techniques = None
-        if tutorial.delivery_techniques:
-            delivery_techniques = [
-                DeliveryTechnique(**technique)
-                for technique in tutorial.delivery_techniques
-            ]
-
-        practice_exercises = None
-        if tutorial.practice_exercises:
-            practice_exercises = [
-                PracticeExercise(**exercise) for exercise in tutorial.practice_exercises
-            ]
-
-        troubleshooting = None
-        if tutorial.troubleshooting:
-            troubleshooting = [
-                TroubleshootingTip(**tip) for tip in tutorial.troubleshooting
-            ]
-
+    def from_domain(cls, tutorial):
         return cls(
             id=tutorial.id,
             introduction=tutorial.introduction,
             preparation_tips=tutorial.preparation_tips,
-            delivery_techniques=delivery_techniques,
-            practice_exercises=practice_exercises,
-            troubleshooting=troubleshooting,
+            delivery_techniques=tutorial.delivery_techniques,
+            practice_exercises=tutorial.practice_exercises,
+            troubleshooting=tutorial.troubleshooting,
             generated_at=tutorial.generated_at.isoformat(),
             updated_at=tutorial.updated_at.isoformat(),
         )
@@ -80,7 +61,7 @@ def get_delivery_tutorial(
     if not tutorial:
         raise HTTPException(status_code=404, detail="Tutorial not yet generated")
 
-    return DeliveryTutorialResponse.from_orm(tutorial)
+    return DeliveryTutorialResponse.from_domain(tutorial)
 
 
 @router.patch("/", response_model=DeliveryTutorialResponse)
@@ -112,4 +93,4 @@ def update_delivery_tutorial(
     if not tutorial:
         raise HTTPException(status_code=404, detail="Tutorial not found")
 
-    return DeliveryTutorialResponse.from_orm(tutorial)
+    return DeliveryTutorialResponse.from_domain(tutorial)

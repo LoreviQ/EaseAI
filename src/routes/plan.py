@@ -25,11 +25,7 @@ class PresentationPlanResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_orm(cls, plan):
-        outline = None
-        if plan.outline:
-            outline = [SlideOutline(**item) for item in plan.outline]
-
+    def from_domain(cls, plan):
         return cls(
             id=plan.id,
             title=plan.title,
@@ -37,7 +33,7 @@ class PresentationPlanResponse(BaseModel):
             target_audience=plan.target_audience,
             tone=plan.tone,
             duration=plan.duration,
-            outline=outline,
+            outline=plan.outline,
             key_messages=plan.key_messages,
             research_summary=plan.research_summary,
             created_at=plan.created_at.isoformat(),
@@ -71,7 +67,7 @@ def get_presentation_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not yet generated")
 
-    return PresentationPlanResponse.from_orm(plan)
+    return PresentationPlanResponse.from_domain(plan)
 
 
 @router.patch("/", response_model=PresentationPlanResponse)
@@ -105,7 +101,7 @@ def update_presentation_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    return PresentationPlanResponse.from_orm(plan)
+    return PresentationPlanResponse.from_domain(plan)
 
 
 @router.post("/approve", response_model=dict)

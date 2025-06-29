@@ -20,20 +20,12 @@ class SpeakerNotesResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_orm(cls, notes):
-        sections = None
-        if notes.sections:
-            sections = [SpeakerNoteSection(**section) for section in notes.sections]
-
-        q_and_a = None
-        if notes.q_and_a:
-            q_and_a = [QandA(**qa) for qa in notes.q_and_a]
-
+    def from_domain(cls, notes):
         return cls(
             id=notes.id,
-            sections=sections,
+            sections=notes.sections,
             talking_points=notes.talking_points,
-            q_and_a=q_and_a,
+            q_and_a=notes.q_and_a,
             generated_at=notes.generated_at.isoformat(),
             updated_at=notes.updated_at.isoformat(),
         )
@@ -60,7 +52,7 @@ def get_speaker_notes(
     if not notes:
         raise HTTPException(status_code=404, detail="Speaker notes not yet generated")
 
-    return SpeakerNotesResponse.from_orm(notes)
+    return SpeakerNotesResponse.from_domain(notes)
 
 
 @router.patch("/", response_model=SpeakerNotesResponse)
@@ -89,4 +81,4 @@ def update_speaker_notes(
     if not notes:
         raise HTTPException(status_code=404, detail="Speaker notes not found")
 
-    return SpeakerNotesResponse.from_orm(notes)
+    return SpeakerNotesResponse.from_domain(notes)

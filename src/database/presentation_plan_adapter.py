@@ -4,6 +4,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.types import PresentationPlan
+
 from .sql_models import PresentationPlanORM
 
 
@@ -11,12 +13,13 @@ class PresentationPlanAdapter:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_plan(self, project_id: UUID) -> Optional[PresentationPlanORM]:
-        return (
+    def get_plan(self, project_id: UUID) -> Optional[PresentationPlan]:
+        plan = (
             self.session.query(PresentationPlanORM)
             .filter(PresentationPlanORM.project_id == project_id)
             .first()
         )
+        return plan.domain if plan else None
 
     def update_plan(
         self,
@@ -28,8 +31,12 @@ class PresentationPlanAdapter:
         duration: Optional[int] = None,
         outline: Optional[list] = None,
         key_messages: Optional[list] = None,
-    ) -> Optional[PresentationPlanORM]:
-        plan = self.get_plan(project_id)
+    ) -> Optional[PresentationPlan]:
+        plan = (
+            self.session.query(PresentationPlanORM)
+            .filter(PresentationPlanORM.project_id == project_id)
+            .first()
+        )
         if not plan:
             return None
 
@@ -50,7 +57,7 @@ class PresentationPlanAdapter:
 
         plan.updated_at = datetime.now(timezone.utc)
         self.session.flush()
-        return plan
+        return plan.domain
 
     def plan_exists(self, project_id: UUID) -> bool:
         return (

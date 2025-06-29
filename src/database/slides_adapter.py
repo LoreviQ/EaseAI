@@ -4,6 +4,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.types import Slides
+
 from .sql_models import SlidesORM
 
 
@@ -11,20 +13,25 @@ class SlidesAdapter:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_slides(self, project_id: UUID) -> Optional[SlidesORM]:
-        return (
+    def get_slides(self, project_id: UUID) -> Optional[Slides]:
+        slides = (
             self.session.query(SlidesORM)
             .filter(SlidesORM.project_id == project_id)
             .first()
         )
+        return slides.domain if slides else None
 
     def update_slides(
         self,
         project_id: UUID,
         slides_data: Optional[list] = None,
         template_id: Optional[str] = None,
-    ) -> Optional[SlidesORM]:
-        slides = self.get_slides(project_id)
+    ) -> Optional[Slides]:
+        slides = (
+            self.session.query(SlidesORM)
+            .filter(SlidesORM.project_id == project_id)
+            .first()
+        )
         if not slides:
             return None
 
@@ -35,7 +42,7 @@ class SlidesAdapter:
 
         slides.updated_at = datetime.now(timezone.utc)
         self.session.flush()
-        return slides
+        return slides.domain
 
     def slides_exist(self, project_id: UUID) -> bool:
         return (

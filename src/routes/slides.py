@@ -19,17 +19,17 @@ class SlidesResponse(BaseModel):
     updated_at: str
 
     @classmethod
-    def from_orm(cls, slides_orm):
+    def from_domain(cls, slides_domain):
         slides_data = None
-        if slides_orm.slides_data:
-            slides_data = [Slide(**slide) for slide in slides_orm.slides_data]
+        if slides_domain.slides:
+            slides_data = slides_domain.slides
 
         return cls(
-            id=slides_orm.id,
+            id=slides_domain.id,
             slides=slides_data,
-            template_id=slides_orm.template_id,
-            generated_at=slides_orm.generated_at.isoformat(),
-            updated_at=slides_orm.updated_at.isoformat(),
+            template_id=slides_domain.template_id,
+            generated_at=slides_domain.generated_at.isoformat(),
+            updated_at=slides_domain.updated_at.isoformat(),
         )
 
 
@@ -57,7 +57,7 @@ def get_slides(
     if not slides:
         raise HTTPException(status_code=404, detail="Slides not yet generated")
 
-    return SlidesResponse.from_orm(slides)
+    return SlidesResponse.from_domain(slides)
 
 
 @router.patch("/", response_model=SlidesResponse)
@@ -81,7 +81,7 @@ def update_slides(
     if not slides:
         raise HTTPException(status_code=404, detail="Slides not found")
 
-    return SlidesResponse.from_orm(slides)
+    return SlidesResponse.from_domain(slides)
 
 
 @router.post("/regenerate", response_model=SlidesResponse)

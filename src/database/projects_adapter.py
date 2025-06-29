@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.types import ProjectPhase
+from src.types import Project, ProjectPhase
 
 from .sql_models import ProjectORM
 
@@ -18,7 +18,7 @@ class ProjectsAdapter:
         title: str,
         description: Optional[str] = None,
         metadata: Optional[dict] = None,
-    ) -> ProjectORM:
+    ) -> Project:
         project = ProjectORM(
             title=title,
             description=description,
@@ -27,16 +27,17 @@ class ProjectsAdapter:
         )
         self.session.add(project)
         self.session.flush()
-        return project
+        return project.domain
 
-    def get_project(self, project_id: UUID) -> Optional[ProjectORM]:
-        return (
+    def get_project(self, project_id: UUID) -> Optional[Project]:
+        project = (
             self.session.query(ProjectORM).filter(ProjectORM.id == project_id).first()
         )
+        return project.domain if project else None
 
     def get_projects(
         self, limit: int = 20, offset: int = 0
-    ) -> tuple[List[ProjectORM], int]:
+    ) -> tuple[List[Project], int]:
         query = self.session.query(ProjectORM)
 
         total = query.count()
@@ -47,7 +48,7 @@ class ProjectsAdapter:
             .all()
         )
 
-        return projects, total
+        return [project.domain for project in projects], total
 
     def update_project(
         self,
@@ -56,8 +57,10 @@ class ProjectsAdapter:
         description: Optional[str] = None,
         phase: Optional[ProjectPhase] = None,
         metadata: Optional[dict] = None,
-    ) -> Optional[ProjectORM]:
-        project = self.get_project(project_id)
+    ) -> Optional[Project]:
+        project = (
+            self.session.query(ProjectORM).filter(ProjectORM.id == project_id).first()
+        )
         if not project:
             return None
 
@@ -72,10 +75,12 @@ class ProjectsAdapter:
 
         project.updated_at = datetime.now(timezone.utc)
         self.session.flush()
-        return project
+        return project.domain
 
     def delete_project(self, project_id: UUID) -> bool:
-        project = self.get_project(project_id)
+        project = (
+            self.session.query(ProjectORM).filter(ProjectORM.id == project_id).first()
+        )
         if not project:
             return False
 

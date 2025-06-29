@@ -3,6 +3,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.types import Message
+
 from .sql_models import MessageORM
 
 
@@ -16,7 +18,7 @@ class MessagesAdapter:
         role: str,
         content: str,
         attachments: Optional[list] = None,
-    ) -> MessageORM:
+    ) -> Message:
         message = MessageORM(
             project_id=project_id,
             role=role,
@@ -25,16 +27,17 @@ class MessagesAdapter:
         )
         self.session.add(message)
         self.session.flush()
-        return message
+        return message.domain
 
-    def get_message(self, message_id: UUID) -> Optional[MessageORM]:
-        return (
+    def get_message(self, message_id: UUID) -> Optional[Message]:
+        message = (
             self.session.query(MessageORM).filter(MessageORM.id == message_id).first()
         )
+        return message.domain if message else None
 
     def get_messages(
         self, project_id: UUID, limit: int = 50, offset: int = 0
-    ) -> tuple[List[MessageORM], int]:
+    ) -> tuple[List[Message], int]:
         query = self.session.query(MessageORM).filter(
             MessageORM.project_id == project_id
         )
@@ -44,10 +47,12 @@ class MessagesAdapter:
             query.order_by(MessageORM.timestamp.asc()).offset(offset).limit(limit).all()
         )
 
-        return messages, total
+        return [message.domain for message in messages], total
 
     def delete_message(self, message_id: UUID) -> bool:
-        message = self.get_message(message_id)
+        message = (
+            self.session.query(MessageORM).filter(MessageORM.id == message_id).first()
+        )
         if not message:
             return False
 
