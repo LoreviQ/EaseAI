@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
-from ..state import WorkflowState
+from ..state import OverallState
 
 
-def review_node(state: WorkflowState, session: Session) -> WorkflowState:
+def review_node(state: OverallState, session: Session) -> OverallState:
     """
     TODO: Review and refine generated presentation content.
 

@@ -1,12 +1,12 @@
 import logging
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.agents.workflow_agent import PresentationWorkflowAgent
+from src.agents import agent
 from src.database import MessagesAdapter, ProjectsAdapter, get_db
 
 logger = logging.getLogger("easeai")
@@ -19,11 +19,11 @@ class CreateMessageRequest(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    id: UUID
+    id: Optional[UUID]
     role: str
     content: str
-    timestamp: str
-    attachments: list | None
+    timestamp: Optional[str]
+    attachments: Optional[list[UUID]]
 
     @classmethod
     def from_domain(cls, message: Any) -> "MessageResponse":
@@ -57,14 +57,20 @@ def send_message(
         attachments=request.attachments,
     )
 
-    workflow_agent = PresentationWorkflowAgent(db)
-    result_state = workflow_agent.process_message(project_id)
+    # Prepare the agent state and invoke the agent
+    initial_state = {"user_input": request.message}
+    output_state = agent.invoke(initial_state)
 
-    if result_state.messages:
-        ai_message = result_state.messages[-1]
-        return MessageResponse.from_domain(ai_message)
-    else:
-        raise HTTPException(status_code=500, detail="No AI response generated")
+    response = messages_adapter.create_message(
+        project_id=project_id,
+        role="assistant",
+        content=output_state["agent_response"],
+    )
+
+    # Log the response
+    logger.debug(f"Agent response: {output_state['agent_response']}")
+
+    return MessageResponse.from_domain(response)
 
 
 @router.get("/", response_model=dict)

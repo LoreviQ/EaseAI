@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
-from ..state import WorkflowState
+from ..state import OverallState
 
 
-def content_node(state: WorkflowState, session: Session) -> WorkflowState:
+def content_node(state: OverallState, session: Session) -> OverallState:
     """
     TODO: Generate presentation content (slides, speaker notes, delivery tutorial).
 
