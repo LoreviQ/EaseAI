@@ -31,7 +31,7 @@ __all__ = [
 
 logger = logging.getLogger("easeai")
 
-DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
+DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError(
         "Database connection string is not set in the environment variables."
