@@ -33,6 +33,7 @@ class PresentationPlanAdapter:
         duration: Optional[int] = None,
         outline: Optional[list] = None,
         key_messages: Optional[list] = None,
+        research_summary: Optional[str] = None,
     ) -> Optional[PresentationPlan]:
         plan = (
             self.session.query(PresentationPlanORM)
@@ -56,6 +57,8 @@ class PresentationPlanAdapter:
             plan.outline = outline
         if key_messages is not None:
             plan.key_messages = key_messages
+        if research_summary is not None:
+            plan.research_summary = research_summary
 
         plan.updated_at = datetime.now(timezone.utc)
         self.session.flush()

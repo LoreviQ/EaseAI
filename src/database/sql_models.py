@@ -207,8 +207,6 @@ class PresentationPlanORM(Base):
             outline_data = [outline.model_dump() for outline in plan.outline]
 
         return cls(
-            id=plan.id,
-            project_id=plan.project_id,
             title=plan.title,
             objective=plan.objective,
             target_audience=plan.target_audience,
@@ -217,8 +215,6 @@ class PresentationPlanORM(Base):
             outline=outline_data,
             key_messages=plan.key_messages,
             research_summary=plan.research_summary,
-            created_at=plan.created_at,
-            updated_at=plan.updated_at,
         )
 
     @property
@@ -228,8 +224,6 @@ class PresentationPlanORM(Base):
             outline = [SlideOutline(**item) for item in self.outline]
 
         return PresentationPlan(
-            id=self.id,
-            project_id=self.project_id,
             title=self.title,
             objective=self.objective,
             target_audience=self.target_audience,
@@ -238,8 +232,6 @@ class PresentationPlanORM(Base):
             outline=outline,
             key_messages=self.key_messages,
             research_summary=self.research_summary,
-            created_at=self.created_at,
-            updated_at=self.updated_at,
         )
 
 
