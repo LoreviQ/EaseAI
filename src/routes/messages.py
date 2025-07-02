@@ -34,7 +34,8 @@ def send_message(
     projects_adapter = ProjectsAdapter(db_session)
     messages_adapter = MessagesAdapter(db_session)
 
-    if not projects_adapter.project_exists(project_id):
+    project = projects_adapter.get_project(project_id)
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
     messages_adapter.create_message(
@@ -46,7 +47,10 @@ def send_message(
 
     # Prepare the agent state and invoke the agent
     messages = messages_adapter.get_messages(project_id=project_id)[0]
-    initial_state = {"messages": [message.AnyMessage for message in messages]}
+    initial_state = {
+        "messages": [message.AnyMessage for message in messages],
+        "project_phase": project.phase,
+    }
     config = RunnableConfig(
         configurable={
             "project_id": project_id,
@@ -55,6 +59,11 @@ def send_message(
     )
     output_state = agent.invoke(initial_state, config=config)
     response = output_state["messages"][-1]
+    if output_state["project_phase"] != initial_state["project_phase"]:
+        projects_adapter.update_project(
+            project_id=project_id,
+            phase=output_state["project_phase"],
+        )
 
     # Log the response
     logger.debug(f"Agent response: {response.content}")

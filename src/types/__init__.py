@@ -1,14 +1,13 @@
-from .base import MessageType, ProcessingStatus, ProjectPhase
 from .delivery_tutorial import (
     DeliveryTechnique,
     DeliveryTutorial,
     PracticeExercise,
     TroubleshootingTip,
 )
-from .document import Document
-from .message import Message
+from .document import Document, ProcessingStatus
+from .message import Message, MessageType
 from .plan import PresentationPlan, SlideOutline
-from .project import Project
+from .project import Project, ProjectPhase
 from .slides import Slide, Slides
 from .speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
 

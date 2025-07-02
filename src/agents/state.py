@@ -1,14 +1,7 @@
-from typing import TypedDict
+from langgraph.graph import MessagesState
+
+from src.types import ProjectPhase
 
 
-class OverallState(TypedDict):
-    user_input: str
-    agent_response: str
-
-
-class InputState(TypedDict):
-    user_input: str
-
-
-class OutputState(TypedDict):
-    agent_response: str
+class OverallState(MessagesState):
+    project_phase: ProjectPhase
