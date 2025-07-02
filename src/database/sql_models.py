@@ -16,7 +16,7 @@ from src.types.delivery_tutorial import (
 )
 from src.types.document import Document, ProcessingStatus
 from src.types.message import Message, MessageType
-from src.types.plan import PresentationPlan, SlideOutline
+from src.types.plan import PresentationPlan
 from src.types.project import Project, ProjectPhase
 from src.types.slides import Slide, Slides
 from src.types.speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
@@ -187,8 +187,6 @@ class PresentationPlanORM(Base):
     target_audience = Column(String(255))
     tone = Column(String(255))
     duration = Column(Integer)
-    outline = Column(JSON)
-    key_messages = Column(JSON)
     research_summary = Column(Text)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(
@@ -202,35 +200,23 @@ class PresentationPlanORM(Base):
 
     @classmethod
     def from_domain(cls, plan: PresentationPlan) -> "PresentationPlanORM":
-        outline_data = None
-        if plan.outline:
-            outline_data = [outline.model_dump() for outline in plan.outline]
-
         return cls(
             title=plan.title,
             objective=plan.objective,
             target_audience=plan.target_audience,
             tone=plan.tone,
             duration=plan.duration,
-            outline=outline_data,
-            key_messages=plan.key_messages,
             research_summary=plan.research_summary,
         )
 
     @property
     def domain(self) -> PresentationPlan:
-        outline = None
-        if self.outline:
-            outline = [SlideOutline(**item) for item in self.outline]
-
         return PresentationPlan(
             title=self.title,
             objective=self.objective,
             target_audience=self.target_audience,
             tone=self.tone,
             duration=self.duration,
-            outline=outline,
-            key_messages=self.key_messages,
             research_summary=self.research_summary,
         )
 

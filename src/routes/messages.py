@@ -8,7 +8,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.agents import agent
-from src.database import MessagesAdapter, ProjectsAdapter, get_db
+from src.database import (
+    MessagesAdapter,
+    PresentationPlanAdapter,
+    ProjectsAdapter,
+    get_db,
+)
 
 logger = logging.getLogger("easeai")
 router = APIRouter(prefix="/projects/{project_id}/messages", tags=["Research"])
@@ -33,6 +38,7 @@ def send_message(
     logger.debug(f"Sending message to project {project_id}: {request.message}")
     projects_adapter = ProjectsAdapter(db_session)
     messages_adapter = MessagesAdapter(db_session)
+    presentation_plan_adapter = PresentationPlanAdapter(db_session)
 
     project = projects_adapter.get_project(project_id)
     if not project:
@@ -50,6 +56,7 @@ def send_message(
     initial_state = {
         "messages": [message.AnyMessage for message in messages],
         "project_phase": project.phase,
+        "presentation_plan": presentation_plan_adapter.get_plan(project_id),
     }
     config = RunnableConfig(
         configurable={

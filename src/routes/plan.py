@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import PresentationPlanAdapter, ProjectsAdapter, get_db
-from src.types.plan import SlideOutline
 
 router = APIRouter(prefix="/projects/{project_id}/plan", tags=["Plan"])
 
@@ -18,8 +17,6 @@ class PresentationPlanResponse(BaseModel):
     target_audience: str | None
     tone: str | None
     duration: int | None
-    outline: list[SlideOutline] | None
-    key_messages: list[str] | None
     research_summary: str | None
     created_at: str
     updated_at: str
@@ -33,8 +30,6 @@ class PresentationPlanResponse(BaseModel):
             target_audience=plan.target_audience,
             tone=plan.tone,
             duration=plan.duration,
-            outline=plan.outline,
-            key_messages=plan.key_messages,
             research_summary=plan.research_summary,
             created_at=plan.created_at.isoformat(),
             updated_at=plan.updated_at.isoformat(),
@@ -47,8 +42,7 @@ class PresentationPlanUpdate(BaseModel):
     target_audience: str | None = None
     tone: str | None = None
     duration: int | None = None
-    outline: list[SlideOutline] | None = None
-    key_messages: list[str] | None = None
+    research_summary: str | None = None
 
 
 @router.get("/", response_model=PresentationPlanResponse)
@@ -83,10 +77,6 @@ def update_presentation_plan(
     if not projects_adapter.project_exists(project_id):
         raise HTTPException(status_code=404, detail="Project not found")
 
-    outline_data = None
-    if request.outline:
-        outline_data = [outline.model_dump() for outline in request.outline]
-
     plan = plan_adapter.update_plan(
         project_id=project_id,
         title=request.title,
@@ -94,8 +84,7 @@ def update_presentation_plan(
         target_audience=request.target_audience,
         tone=request.tone,
         duration=request.duration,
-        outline=outline_data,
-        key_messages=request.key_messages,
+        research_summary=request.research_summary,
     )
 
     if not plan:

@@ -31,8 +31,6 @@ class PresentationPlanAdapter:
         target_audience: Optional[str] = None,
         tone: Optional[str] = None,
         duration: Optional[int] = None,
-        outline: Optional[list] = None,
-        key_messages: Optional[list] = None,
         research_summary: Optional[str] = None,
     ) -> Optional[PresentationPlan]:
         plan = (
@@ -53,10 +51,6 @@ class PresentationPlanAdapter:
             plan.tone = tone
         if duration is not None:
             plan.duration = duration
-        if outline is not None:
-            plan.outline = outline
-        if key_messages is not None:
-            plan.key_messages = key_messages
         if research_summary is not None:
             plan.research_summary = research_summary
 
