@@ -8,17 +8,16 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from src.types import ProcessingStatus, ProjectPhase
 from src.types.delivery_tutorial import (
     DeliveryTechnique,
     DeliveryTutorial,
     PracticeExercise,
     TroubleshootingTip,
 )
-from src.types.document import Document
-from src.types.message import Message
+from src.types.document import Document, ProcessingStatus
+from src.types.message import Message, MessageType
 from src.types.plan import PresentationPlan, SlideOutline
-from src.types.project import Project
+from src.types.project import Project, ProjectPhase
 from src.types.slides import Slide, Slides
 from src.types.speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
 
@@ -78,7 +77,7 @@ class ProjectORM(Base):
             id=project.id,
             title=project.title,
             description=project.description,
-            phase=project.phase,
+            phase=project.phase.value,
             created_at=project.created_at,
             updated_at=project.updated_at,
             project_metadata=project.project_metadata,
@@ -90,7 +89,7 @@ class ProjectORM(Base):
             id=self.id,
             title=self.title,
             description=self.description,
-            phase=self.phase,
+            phase=ProjectPhase(self.phase),
             created_at=self.created_at,
             updated_at=self.updated_at,
             project_metadata=self.project_metadata,
@@ -115,7 +114,7 @@ class MessageORM(Base):
         return cls(
             id=message.id,
             project_id=message.project_id,
-            role=message.role,
+            role=message.type.value,
             content=message.content,
             timestamp=message.timestamp,
             attachments=message.attachments,
@@ -126,7 +125,7 @@ class MessageORM(Base):
         return Message(
             id=self.id,
             project_id=self.project_id,
-            role=self.role,
+            type=MessageType(self.role),
             content=self.content,
             timestamp=self.timestamp,
             attachments=self.attachments,
@@ -159,7 +158,7 @@ class DocumentORM(Base):
             file_type=document.file_type,
             file_size=document.file_size,
             upload_date=document.upload_date,
-            processing_status=document.processing_status,
+            processing_status=document.processing_status.value,
             file_path=document.file_path,
         )
 
@@ -173,7 +172,7 @@ class DocumentORM(Base):
             file_type=self.file_type,
             file_size=self.file_size,
             upload_date=self.upload_date,
-            processing_status=self.processing_status,
+            processing_status=ProcessingStatus(self.processing_status),
             file_path=self.file_path,
         )
 

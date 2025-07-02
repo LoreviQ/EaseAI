@@ -1,4 +1,4 @@
-from .base import MessageRole, ProcessingStatus, ProjectPhase
+from .base import MessageType, ProcessingStatus, ProjectPhase
 from .delivery_tutorial import (
     DeliveryTechnique,
     DeliveryTutorial,
@@ -17,7 +17,7 @@ __all__ = [
     "DeliveryTutorial",
     "Document",
     "Message",
-    "MessageRole",
+    "MessageType",
     "PracticeExercise",
     "PresentationPlan",
     "ProcessingStatus",
