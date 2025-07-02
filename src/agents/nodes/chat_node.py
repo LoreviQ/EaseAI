@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from langchain.agents import AgentExecutor
 from langchain.agents.react.agent import create_react_agent
@@ -17,38 +16,20 @@ from ..state import OverallState
 logger = logging.getLogger("easeai")
 
 
-def create_set_plan_tool(state: OverallState):
+def create_set_plan_tool(plan_container: dict):
     @tool
     def set_plan(
-        title: str,
-        objective: Optional[str] = None,
-        target_audience: Optional[str] = None,
-        tone: Optional[str] = None,
-        duration: Optional[str] = None,
-        research_summary: Optional[str] = None,
+        updated_plan_json: str,
     ) -> str:
         """Sets or updates the presentation plan with the provided details.
 
         Args:
-            title: The title of the presentation. Create a relevant title if the user doesn't provide one (required)
-            objective: The main objective or goal of the presentation
-            target_audience: Who the presentation is intended for
-            tone: The desired tone (e.g., formal, casual, humorous)
-            duration: How long the presentation should be
-            research_summary: Summary of research findings
+            updated_plan_json: The presentation plan to set or update in JSON format
         """
         try:
-            plan = PresentationPlan(
-                title=title,
-                objective=objective,
-                target_audience=target_audience,
-                tone=tone,
-                duration=duration,
-                research_summary=research_summary,
-            )
-            state["presentation_plan"] = plan
-            logger.info(f"Plan updated: {plan.title}")
-            return f"Presentation plan updated successfully: {plan.title}"
+            updated_plan = PresentationPlan.model_validate_json(updated_plan_json)
+            plan_container["plan"] = updated_plan
+            return f"Presentation plan updated successfully: {updated_plan.title}"
         except Exception as e:
             logger.error(f"Error updating plan: {e}")
             return f"Error updating plan: {str(e)}"
@@ -64,7 +45,9 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
     )
 
     # Create custom prompt template for the agent
-    set_plan_tool = create_set_plan_tool(state)
+    presentation_plan = state.get("presentation_plan")
+    plan_container = {"plan": presentation_plan}
+    set_plan_tool = create_set_plan_tool(plan_container)
     tools = [set_plan_tool]
     prompt = PromptTemplate(
         template="""You are EaseAI, an AI assistant helping users create presentations.
@@ -116,10 +99,9 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
     chat_history = "\n".join(
         [f"{msg.type}: {msg.content}" for msg in state["messages"][:-1]]
     )
-    current_plan = state.get("presentation_plan")
     plan_str = (
-        current_plan.model_dump_json(indent=2)
-        if current_plan
+        presentation_plan.model_dump_json(indent=2)
+        if presentation_plan
         else "No plan created yet"
     )
     result = agent_executor.invoke(
@@ -135,4 +117,7 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
         role="ai",
         content=response,
     )
-    return {"messages": [AIMessage(content=response)]}
+    return {
+        "messages": [AIMessage(content=response)],
+        "presentation_plan": plan_container["plan"],
+    }

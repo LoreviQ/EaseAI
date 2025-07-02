@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,6 +14,7 @@ from src.database import (
     ProjectsAdapter,
     get_db,
 )
+from src.types import PresentationPlan
 
 logger = logging.getLogger("easeai")
 router = APIRouter(prefix="/projects/{project_id}/messages", tags=["Research"])
@@ -25,7 +26,8 @@ class CreateMessageRequest(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    content: str
+    response: str
+    presentation_plan: Optional[PresentationPlan] = None
 
 
 @router.post("/", response_model=MessageResponse, status_code=status.HTTP_200_OK)
@@ -76,7 +78,8 @@ def send_message(
     logger.debug(f"Agent response: {response.content}")
 
     return MessageResponse(
-        content=response.content,
+        response=response.content,
+        presentation_plan=output_state.get("presentation_plan"),
     )
 
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class PresentationPlan(BaseModel):
-    title: str
+    title: Optional[str] = None
     objective: Optional[str] = None
     target_audience: Optional[str] = None
     tone: Optional[str] = None
