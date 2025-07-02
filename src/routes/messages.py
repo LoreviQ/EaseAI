@@ -20,15 +20,7 @@ class CreateMessageRequest(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    role: str
     content: str
-
-    @classmethod
-    def from_domain(cls, message: Any) -> "MessageResponse":
-        return cls(
-            role=message.role,
-            content=message.content,
-        )
 
 
 @router.post("/", response_model=MessageResponse, status_code=status.HTTP_200_OK)
@@ -53,7 +45,7 @@ def send_message(
     )
 
     # Prepare the agent state and invoke the agent
-    messages = messages_adapter.get_messages(project_id=project_id)
+    messages = messages_adapter.get_messages(project_id=project_id)[0]
     initial_state = {"messages": [message.AnyMessage for message in messages]}
     config = RunnableConfig(
         configurable={
@@ -68,7 +60,6 @@ def send_message(
     logger.debug(f"Agent response: {response.content}")
 
     return MessageResponse(
-        role="ai",
         content=response.content,
     )
 
@@ -92,7 +83,7 @@ def get_conversation_history(
     )
 
     return {
-        "messages": [MessageResponse.from_domain(message) for message in messages],
+        "messages": messages,
         "total": total,
         "has_more": (offset + limit) < total,
     }

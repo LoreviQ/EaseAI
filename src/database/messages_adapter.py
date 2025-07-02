@@ -1,6 +1,6 @@
 # mypy: disable-error-code="assignment"
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -39,16 +39,17 @@ class MessagesAdapter:
 
     def get_messages(
         self, project_id: UUID, limit: int = 50, offset: int = 0
-    ) -> List[Message]:
+    ) -> Tuple[List[Message], int]:
         query = self.session.query(MessageORM).filter(
             MessageORM.project_id == project_id
         )
 
+        total = query.count()
         messages = (
             query.order_by(MessageORM.timestamp.asc()).offset(offset).limit(limit).all()
         )
 
-        return [message.domain for message in messages]
+        return [message.domain for message in messages], total
 
     def delete_message(self, message_id: UUID) -> bool:
         message = (

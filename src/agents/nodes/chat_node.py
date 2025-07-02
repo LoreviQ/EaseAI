@@ -15,10 +15,9 @@ def chat_node(state: MessagesState, config: RunnableConfig) -> MessagesState:
     # Save the response to the database
     project_id = config["configurable"]["project_id"]
     db_session = config["configurable"]["db_session"]
-    messages_adapter = MessagesAdapter(db_session)
-    messages_adapter.create_message(
+    MessagesAdapter(db_session).create_message(
         project_id=project_id,
         role="ai",
         content=response,
     )
-    return {"messages": state["messages"] + [AIMessage(content=response)]}
+    return {"messages": [AIMessage(content=response)]}
