@@ -39,17 +39,16 @@ class MessagesAdapter:
 
     def get_messages(
         self, project_id: UUID, limit: int = 50, offset: int = 0
-    ) -> tuple[List[Message], int]:
+    ) -> List[Message]:
         query = self.session.query(MessageORM).filter(
             MessageORM.project_id == project_id
         )
 
-        total = query.count()
         messages = (
             query.order_by(MessageORM.timestamp.asc()).offset(offset).limit(limit).all()
         )
 
-        return [message.domain for message in messages], total
+        return [message.domain for message in messages]
 
     def delete_message(self, message_id: UUID) -> bool:
         message = (

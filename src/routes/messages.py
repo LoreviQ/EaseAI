@@ -58,17 +58,18 @@ def send_message(
     )
 
     # Prepare the agent state and invoke the agent
-    initial_state = {"user_input": request.message}
+    messages = messages_adapter.get_messages(project_id=project_id)
+    initial_state = {"messages": [message.AnyMessage for message in messages]}
     output_state = agent.invoke(initial_state)
 
     response = messages_adapter.create_message(
         project_id=project_id,
-        role="assistant",
-        content=output_state["agent_response"],
+        role="ai",
+        content=output_state["messages"][-1].content,
     )
 
     # Log the response
-    logger.debug(f"Agent response: {output_state['agent_response']}")
+    logger.debug(f"Agent response: {output_state['messages'][-1].content}")
 
     return MessageResponse.from_domain(response)
 
