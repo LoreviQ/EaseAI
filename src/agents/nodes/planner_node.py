@@ -5,39 +5,17 @@ from langchain.agents.react.agent import create_react_agent
 from langchain_core.messages import AIMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from src.database import MessagesAdapter
-from src.types import PresentationPlan
 
 from ..state import OverallState
+from ..tools import create_update_plan_tool
 
 logger = logging.getLogger("easeai")
 
 
-def create_set_plan_tool(plan_container: dict):
-    @tool
-    def set_plan(
-        updated_plan_json: str,
-    ) -> str:
-        """Sets or updates the presentation plan with the provided details.
-
-        Args:
-            updated_plan_json: The presentation plan to set or update in JSON format
-        """
-        try:
-            updated_plan = PresentationPlan.model_validate_json(updated_plan_json)
-            plan_container["plan"] = updated_plan
-            return f"Presentation plan updated successfully: {updated_plan.title}"
-        except Exception as e:
-            logger.error(f"Error updating plan: {e}")
-            return f"Error updating plan: {str(e)}"
-
-    return set_plan
-
-
-def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
+def planner_node(state: OverallState, config: RunnableConfig) -> OverallState:
     # Initialize Gemini model
     gemini_llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
@@ -47,8 +25,7 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
     # Create custom prompt template for the agent
     presentation_plan = state.get("presentation_plan")
     plan_container = {"plan": presentation_plan}
-    set_plan_tool = create_set_plan_tool(plan_container)
-    tools = [set_plan_tool]
+    tools = [create_update_plan_tool(plan_container)]
     prompt = PromptTemplate(
         template="""You are EaseAI, an AI assistant helping users create presentations.
 
@@ -57,11 +34,11 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
 
         Your goal is to help users build and refine their presentation plan through conversation.
         Ask the user questions about their desired presentation to help build the presentation plan.
-        Use the set_plan tool to create or update the presentation plan based on user input.
+        Use the update_plan tool to create or update the presentation plan based on user input.
 
-        IMPORTANT: You must ALWAYS follow this exact format. Do not deviate from it:
+        # Response format
+        Follow this exact format. Do not deviate from it.
 
-        Question: the input question you must answer
         Thought: you should always think about what to do
         Action: the action to take, should be one of [{tool_names}]
         Action Input: the input to the action
@@ -72,6 +49,9 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
 
         If you don't need to use a tool, still follow the format but skip Action/Action Input/Observation.
 
+        IMPORTANT: You must include the relevant prefix in every response.
+        'Final Answer:' must be included before your response to the user.
+
         # Current Presentation Plan:
         {current_plan}
 
@@ -81,12 +61,12 @@ def chat_node(state: OverallState, config: RunnableConfig) -> OverallState:
         Question: {input}
         Thought: {agent_scratchpad}""",
         input_variables=[
-            "chat_history",
             "input",
+            "chat_history",
+            "current_plan",
             "agent_scratchpad",
             "tools",
             "tool_names",
-            "current_plan",
         ],
     )
     agent = create_react_agent(gemini_llm, tools, prompt)
