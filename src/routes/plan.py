@@ -2,10 +2,18 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.database import PresentationPlanAdapter, ProjectsAdapter, get_db
+from src.agents import agent
+from src.database import (
+    MessagesAdapter,
+    PresentationPlanAdapter,
+    ProjectsAdapter,
+    get_db,
+)
+from src.types import ProjectPhase
 
 router = APIRouter(prefix="/projects/{project_id}/plan", tags=["Plan"])
 
@@ -93,11 +101,15 @@ def update_presentation_plan(
     return PresentationPlanResponse.from_domain(plan)
 
 
-@router.post("/approve", response_model=dict)
+class ApprovalResponse(BaseModel):
+    response: str
+
+
+@router.post("/approve", response_model=ApprovalResponse)
 def approve_plan(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
-) -> dict[str, Any]:
+) -> ApprovalResponse:
     """Approve plan and move to content production"""
     projects_adapter = ProjectsAdapter(db)
     plan_adapter = PresentationPlanAdapter(db)
@@ -108,6 +120,25 @@ def approve_plan(
     if not plan_adapter.plan_exists(project_id):
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    raise HTTPException(
-        status_code=501, detail="Plan approval functionality not yet implemented"
+    # Approve plan
+    projects_adapter.update_project(
+        project_id=project_id,
+        phase=ProjectPhase.GENERATION,
     )
+
+    messages_adapter = MessagesAdapter(db)
+    messages = messages_adapter.get_messages(project_id=project_id)[0]
+    initial_state = {
+        "messages": [message.AnyMessage for message in messages],
+        "project_phase": ProjectPhase.GENERATION,
+        "presentation_plan": plan_adapter.get_plan(project_id),
+    }
+    config = RunnableConfig(
+        configurable={
+            "project_id": project_id,
+            "db_session": db,
+        }
+    )
+    output_state = agent.invoke(initial_state, config=config)
+
+    return ApprovalResponse(response=output_state["messages"][-1].content)

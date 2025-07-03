@@ -34,13 +34,13 @@ class MessageResponse(BaseModel):
 def send_message(
     project_id: UUID,
     request: CreateMessageRequest,
-    db_session: Annotated[Session, Depends(get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> MessageResponse:
     """Send message to AI agent"""
     logger.debug(f"Sending message to project {project_id}: {request.message}")
-    projects_adapter = ProjectsAdapter(db_session)
-    messages_adapter = MessagesAdapter(db_session)
-    presentation_plan_adapter = PresentationPlanAdapter(db_session)
+    projects_adapter = ProjectsAdapter(db)
+    messages_adapter = MessagesAdapter(db)
+    plan_adapter = PresentationPlanAdapter(db)
 
     project = projects_adapter.get_project(project_id)
     if not project:
@@ -58,12 +58,12 @@ def send_message(
     initial_state = {
         "messages": [message.AnyMessage for message in messages],
         "project_phase": project.phase,
-        "presentation_plan": presentation_plan_adapter.get_plan(project_id),
+        "presentation_plan": plan_adapter.get_plan(project_id),
     }
     config = RunnableConfig(
         configurable={
             "project_id": project_id,
-            "db_session": db_session,
+            "db_session": db,
         }
     )
     output_state = agent.invoke(initial_state, config=config)
