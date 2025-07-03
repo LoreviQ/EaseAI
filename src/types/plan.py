@@ -23,3 +23,13 @@ class PresentationPlan(BaseModel):
     research_summary: Optional[str] = Field(
         description="The research summary of the presentation", default=None
     )
+
+
+def update_plan(
+    existing_plan: Optional[PresentationPlan], plan_patch: Optional[PresentationPlan]
+) -> PresentationPlan:
+    if existing_plan is None:
+        return plan_patch
+    existing_dict = existing_plan.model_dump()
+    existing_dict.update(plan_patch.model_dump())
+    return PresentationPlan(**existing_dict)

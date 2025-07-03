@@ -6,7 +6,7 @@ from .delivery_tutorial import (
 )
 from .document import Document, ProcessingStatus
 from .message import Message, MessageType
-from .plan import PresentationPlan
+from .plan import PresentationPlan, update_plan
 from .project import Project, ProjectPhase
 from .slides import Slide, Slides
 from .speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
@@ -16,6 +16,7 @@ __all__ = [
     "DeliveryTutorial",
     "Document",
     "Message",
+    "update_plan",
     "MessageType",
     "PracticeExercise",
     "PresentationPlan",

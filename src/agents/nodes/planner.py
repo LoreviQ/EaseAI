@@ -1,14 +1,15 @@
 import logging
-from typing import List
+from typing import Optional
 
 from langchain_core.messages import SystemMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import BaseTool
 from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import BaseModel, Field
+
+from src.types import PresentationPlan
 
 from ..state import OverallState
-from ..tools import update_plan_tool
 
 logger = logging.getLogger("easeai")
 gemini_llm = ChatGoogleGenerativeAI(
@@ -16,8 +17,6 @@ gemini_llm = ChatGoogleGenerativeAI(
     temperature=0.7,
     max_retries=2,
 )
-tools: List[BaseTool] = [update_plan_tool]
-planner_model = gemini_llm.bind_tools(tools)
 planner_prompt = PromptTemplate(
     template="""You are EaseAI, an AI assistant helping users create presentations.
 
@@ -33,13 +32,24 @@ planner_prompt = PromptTemplate(
 )
 
 
+class PlannerResponse(BaseModel):
+    response: str = Field(description="The response from to the user")
+    presentation_plan: Optional[PresentationPlan] = Field(
+        description="The presentation plan patch. Only include changes you wish to make to the current plan"  # noqa: E501
+    )
+
+
+structured_planner = gemini_llm.with_structured_output(PlannerResponse)
+
+
 def planner(state: OverallState, config: RunnableConfig) -> OverallState:
     system = planner_prompt.format(
         current_plan=state.get("presentation_plan"),
     )
     logger.debug(f"System prompt: {system}")
     messages = [SystemMessage(content=system)] + state.get("messages", [])
-    response = planner_model.invoke(messages, config)
+    response = structured_planner.invoke(messages, config)
     return {
-        "messages": [response],
+        "messages": [response.response],
+        "presentation_plan": response.presentation_plan,
     }

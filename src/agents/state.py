@@ -3,15 +3,16 @@ from contextlib import contextmanager
 from typing import Any, Iterator, Optional
 
 from langgraph.graph import MessagesState
+from typing_extensions import Annotated
 
-from src.types import PresentationPlan, ProjectPhase
+from src.types import PresentationPlan, ProjectPhase, update_plan
 
 _thread_local = threading.local()
 
 
 class OverallState(MessagesState):
     project_phase: ProjectPhase
-    presentation_plan: Optional[PresentationPlan] = None
+    presentation_plan: Annotated[Optional[PresentationPlan], update_plan]
 
 
 def get_state() -> Optional[OverallState]:

@@ -17,7 +17,8 @@ def phase_router(state: OverallState) -> str:
 
 
 def response_router(state: OverallState) -> str:
-    if state["messages"][-1].tool_calls:
+    last_message = state["messages"][-1]
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
         return "call_tool"
     return END
 
