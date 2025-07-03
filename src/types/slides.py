@@ -26,7 +26,10 @@ class Slide(SlideOutline):
         if self.time_spent_on_slide:
             parts.append(f"Time: {self.time_spent_on_slide}s")
         if self.content:
-            parts.append("Content: [Generated]")
+            content_preview = (
+                self.content[:100] + "..." if len(self.content) > 100 else self.content
+            )
+            parts.append(f"Content: {content_preview}")
         if self.speaker_notes:
             parts.append("Speaker Notes: [Generated]")
         if self.delivery_tutorial:

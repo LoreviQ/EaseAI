@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from src.types import Slide
 
-from ..state import InputState, OverallState
+from ..state import OverallState
 
 logger = logging.getLogger("easeai")
 
@@ -63,13 +63,13 @@ Make the design clean, professional, and engaging.""",
 step_instructions = (
     "Generate the complete slide content as HTML/CSS/JS for each slide outline. "
     "Each slide's content should be production-ready and visually appealing. "
-    "Focus on creating slides that will captivate the audience and effectively deliver the intended message. "
+    "Focus on creating slides that will captivate the audience and effectively deliver the intended message. "  # noqa: E501
     "Return a list of SlideContent objects with slide numbers and content strings."
 )
 
 
 # node
-def slide_generator(state: InputState, config: RunnableConfig) -> OverallState:
+def slide(state: OverallState, config: RunnableConfig) -> OverallState:
     slides = state.get("slides", {})
     slide_outlines = "\n".join(str(slide) for slide in slides.values())
     system = slide_generator_prompt.format(

@@ -6,11 +6,11 @@ from src.types import ProjectPhase
 
 from .nodes import (
     call_tool,
-    delivery_tutorial_generator,
+    delivery_tutorial,
     outline,
     planner,
-    slide_generator,
-    speaker_notes_generator,
+    slide,
+    speaker_notes,
 )
 from .state import OverallState
 
@@ -45,12 +45,12 @@ builder.add_edge("call_tool", "planner")
 
 # generation phase
 builder.add_node("outline", outline)
-builder.add_node("slide_generator", slide_generator)
-builder.add_node("speaker_notes_generator", speaker_notes_generator)
-builder.add_node("delivery_tutorial_generator", delivery_tutorial_generator)
-builder.add_edge("outline", "slide_generator")
-builder.add_edge("slide_generator", "speaker_notes_generator")
-builder.add_edge("speaker_notes_generator", "delivery_tutorial_generator")
-builder.add_edge("delivery_tutorial_generator", END)
+builder.add_node("slide", slide)
+builder.add_node("speaker_notes", speaker_notes)
+builder.add_node("delivery_tutorial", delivery_tutorial)
+builder.add_edge("outline", "slide")
+builder.add_edge("slide", "speaker_notes")
+builder.add_edge("speaker_notes", "delivery_tutorial")
+builder.add_edge("delivery_tutorial", END)
 
 agent = builder.compile()
