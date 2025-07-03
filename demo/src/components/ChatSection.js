@@ -67,18 +67,23 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
       </div>
       
       <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`max-w-[80%] p-3 rounded-xl break-words ${
-              message.role === 'user'
-                ? 'bg-blue-600 text-white ml-auto'
-                : 'bg-border text-text-primary mr-auto'
-            }`}
-          >
-            {message.content}
-          </div>
-        ))}
+        {messages.map((message, index) => {
+          // Handle both API format (type: 'user'/'ai') and local format (role: 'user'/'assistant')
+          const isUser = message.type === 'user' || message.role === 'user';
+          
+          return (
+            <div
+              key={index}
+              className={`max-w-[80%] p-3 rounded-xl break-words ${
+                isUser
+                  ? 'bg-blue-600 text-white ml-auto'
+                  : 'bg-border text-text-primary mr-auto'
+              }`}
+            >
+              {message.content}
+            </div>
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
       
