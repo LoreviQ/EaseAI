@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,29 +12,21 @@ router = APIRouter(prefix="/projects/{project_id}/slides", tags=["Content"])
 
 
 class SlidesResponse(BaseModel):
-    id: UUID
-    slides: list[Slide] | None
-    template_id: str | None
-    generated_at: str
-    updated_at: str
+    slides: list[Slide]
 
     @classmethod
-    def from_domain(cls, slides_domain: Any) -> "SlidesResponse":
-        slides_data = None
-        if slides_domain.slides:
-            slides_data = slides_domain.slides
-
-        return cls(
-            id=slides_domain.id,
-            slides=slides_data,
-            template_id=slides_domain.template_id,
-            generated_at=slides_domain.generated_at.isoformat(),
-            updated_at=slides_domain.updated_at.isoformat(),
-        )
+    def from_domain(cls, slides_list: list[Slide]) -> "SlidesResponse":
+        return cls(slides=slides_list)
 
 
-class SlidesUpdate(BaseModel):
-    slides: list[dict] | None = None
+class SlideUpdate(BaseModel):
+    slide_number: int
+    title: str | None = None
+    description: str | None = None
+    time_spent_on_slide: int | None = None
+    content: str | None = None
+    speaker_notes: str | None = None
+    delivery_tutorial: str | None = None
 
 
 class RegenerateRequest(BaseModel):
@@ -60,28 +52,41 @@ def get_slides(
     return SlidesResponse.from_domain(slides)
 
 
-@router.patch("/", response_model=SlidesResponse)
-def update_slides(
+@router.patch("/{slide_number}", response_model=Slide)
+def update_slide(
     project_id: UUID,
-    request: SlidesUpdate,
+    slide_number: int,
+    request: SlideUpdate,
     db: Annotated[Session, Depends(get_db)],
-) -> SlidesResponse:
-    """Update slides content"""
+) -> Slide:
+    """Update a specific slide"""
     projects_adapter = ProjectsAdapter(db)
     slides_adapter = SlidesAdapter(db)
 
     if not projects_adapter.project_exists(project_id):
         raise HTTPException(status_code=404, detail="Project not found")
 
-    slides = slides_adapter.update_slides(
-        project_id=project_id,
-        slides_data=request.slides,
+    # Get existing slide
+    existing_slide = slides_adapter.get_slide(project_id, slide_number)
+    if not existing_slide:
+        raise HTTPException(status_code=404, detail="Slide not found")
+
+    # Create updated slide
+    updated_slide = Slide(
+        title=request.title or existing_slide.title,
+        description=request.description or existing_slide.description,
+        time_spent_on_slide=request.time_spent_on_slide or existing_slide.time_spent_on_slide,
+        slide_number=slide_number,
+        content=request.content or existing_slide.content,
+        speaker_notes=request.speaker_notes or existing_slide.speaker_notes,
+        delivery_tutorial=request.delivery_tutorial or existing_slide.delivery_tutorial,
     )
 
-    if not slides:
-        raise HTTPException(status_code=404, detail="Slides not found")
+    result = slides_adapter.update_slide(project_id, slide_number, updated_slide)
+    if not result:
+        raise HTTPException(status_code=404, detail="Slide not found")
 
-    return SlidesResponse.from_domain(slides)
+    return result
 
 
 @router.post("/regenerate", response_model=SlidesResponse)
@@ -97,7 +102,8 @@ def regenerate_slides(
     if not projects_adapter.project_exists(project_id):
         raise HTTPException(status_code=404, detail="Project not found")
 
-    if not slides_adapter.slides_exist(project_id):
+    slides = slides_adapter.get_slides(project_id)
+    if not slides:
         raise HTTPException(status_code=404, detail="Slides not found")
 
     raise HTTPException(

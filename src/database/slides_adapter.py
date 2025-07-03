@@ -72,6 +72,14 @@ class SlidesAdapter:
             is not None
         )
 
+    def slides_exist(self, project_id: UUID) -> bool:
+        return (
+            self.session.query(SlideORM)
+            .filter(SlideORM.project_id == project_id)
+            .first()
+            is not None
+        )
+
     def delete_slides(self, project_id: UUID) -> None:
         self.session.query(SlideORM).filter(SlideORM.project_id == project_id).delete()
         self.session.flush()
