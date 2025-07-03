@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, setError, setPresentationPlan }) => {
   const [inputValue, setInputValue] = useState('');
@@ -53,7 +53,7 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
     }
   };
   
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -61,7 +61,7 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
   };
   
   return (
-    <div className="flex-1 flex flex-col bg-dark-tertiary border border-border rounded-lg min-h-0">
+    <div className="h-full flex flex-col bg-dark-tertiary border border-border rounded-lg min-h-0 max-h-full">
       <div className="p-4 border-b border-border">
         <h3 className="font-medium text-text-primary">Chat with AI Assistant</h3>
       </div>
@@ -87,7 +87,7 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Type your message..."
           disabled={!projectId || loading}
           className="flex-1 bg-border text-text-primary px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-primary placeholder-text-secondary"
