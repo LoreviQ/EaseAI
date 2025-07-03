@@ -12,7 +12,7 @@ const App = () => {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [projectPhase, setProjectPhase] = useState('research');
+  const [projectPhase, setProjectPhase] = useState('preparation');
   
   const API_BASE = 'http://localhost:8000/v1';
   

@@ -56,9 +56,9 @@ const SlideViewer = ({ slides }) => {
       
       {/* Slide Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 bg-white border-b border-border overflow-hidden">
+        <div className="flex-1 bg-white overflow-auto">
           <div 
-            className="w-full h-full"
+            className="w-full min-h-full"
             dangerouslySetInnerHTML={{ __html: slide.content }}
           />
         </div>

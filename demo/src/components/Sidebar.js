@@ -1,20 +1,20 @@
 const Sidebar = ({ projectId, projectPhase, projects, onSelectProject, onCreateProject, loading }) => {
   const getPhaseStatus = (phase) => {
     switch (phase) {
-      case 'research': return 'Research Phase';
-      case 'planning': return 'Planning Phase';
+      case 'preparation': return 'Preparation Phase';
       case 'generation': return 'Generating Content';
-      case 'completed': return 'Completed';
+      case 'review': return 'Review Phase';
+      case 'complete': return 'Complete';
       default: return 'Unknown Phase';
     }
   };
 
   const getPhaseColor = (phase) => {
     switch (phase) {
-      case 'research': return 'bg-orange-500';
-      case 'planning': return 'bg-blue-500';
-      case 'generation': return 'bg-green-500';
-      case 'completed': return 'bg-accent';
+      case 'preparation': return 'bg-orange-500';
+      case 'generation': return 'bg-blue-500';
+      case 'review': return 'bg-green-500';
+      case 'complete': return 'bg-accent';
       default: return 'bg-gray-500';
     }
   };
