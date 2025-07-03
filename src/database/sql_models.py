@@ -186,7 +186,7 @@ class PresentationPlanORM(Base):
     objective = Column(Text)
     target_audience = Column(String(255))
     tone = Column(String(255))
-    duration = Column(Integer)
+    duration = Column(String(255))
     research_summary = Column(Text)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(

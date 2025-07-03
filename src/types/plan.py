@@ -24,6 +24,16 @@ class PresentationPlan(BaseModel):
         description="The research summary of the presentation", default=None
     )
 
+    def __str__(self):
+        return (
+            f"title={self.title},"
+            f"\nobjective={self.objective},"
+            f"\ntarget_audience={self.target_audience},"
+            f"\ntone={self.tone},"
+            f"\nduration={self.duration},"
+            f"\nresearch_summary={self.research_summary})"
+        )
+
 
 def update_plan(
     existing_plan: Optional[PresentationPlan], plan_patch: Optional[PresentationPlan]

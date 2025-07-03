@@ -26,37 +26,43 @@ class PresentationPlanAdapter:
     def update_plan(
         self,
         project_id: UUID,
-        title: Optional[str] = None,
-        objective: Optional[str] = None,
-        target_audience: Optional[str] = None,
-        tone: Optional[str] = None,
-        duration: Optional[int] = None,
-        research_summary: Optional[str] = None,
+        plan_patch: PresentationPlan,
     ) -> Optional[PresentationPlan]:
-        plan = (
+        db_plan = (
             self.session.query(PresentationPlanORM)
             .filter(PresentationPlanORM.project_id == project_id)
             .first()
         )
-        if not plan:
-            return None
+        if not db_plan:
+            db_plan = PresentationPlanORM(
+                project_id=project_id,
+                title=plan_patch.title,
+                objective=plan_patch.objective,
+                target_audience=plan_patch.target_audience,
+                tone=plan_patch.tone,
+                duration=plan_patch.duration,
+                research_summary=plan_patch.research_summary,
+            )
+            self.session.add(db_plan)
+            self.session.flush()
+            return db_plan.domain
 
-        if title is not None:
-            plan.title = title
-        if objective is not None:
-            plan.objective = objective
-        if target_audience is not None:
-            plan.target_audience = target_audience
-        if tone is not None:
-            plan.tone = tone
-        if duration is not None:
-            plan.duration = duration
-        if research_summary is not None:
-            plan.research_summary = research_summary
+        if plan_patch.title is not None:
+            db_plan.title = plan_patch.title
+        if plan_patch.objective is not None:
+            db_plan.objective = plan_patch.objective
+        if plan_patch.target_audience is not None:
+            db_plan.target_audience = plan_patch.target_audience
+        if plan_patch.tone is not None:
+            db_plan.tone = plan_patch.tone
+        if plan_patch.duration is not None:
+            db_plan.duration = plan_patch.duration
+        if plan_patch.research_summary is not None:
+            db_plan.research_summary = plan_patch.research_summary
 
-        plan.updated_at = datetime.now(timezone.utc)
+        db_plan.updated_at = datetime.now(timezone.utc)
         self.session.flush()
-        return plan.domain
+        return db_plan.domain
 
     def plan_exists(self, project_id: UUID) -> bool:
         return (
