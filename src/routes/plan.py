@@ -136,5 +136,9 @@ def approve_plan(
         }
     )
     agent.invoke(initial_state, config=config)
+    projects_adapter.update_project(
+        project_id=project_id,
+        phase=ProjectPhase.REVIEW,
+    )
 
     return "Plan approved and content generation started completed"

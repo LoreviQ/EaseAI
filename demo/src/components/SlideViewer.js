@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const SlideViewer = ({ slides }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [notesMinimized, setNotesMinimized] = useState(false);
   
   useEffect(() => {
     setCurrentSlide(0);
@@ -63,24 +64,46 @@ const SlideViewer = ({ slides }) => {
         </div>
         
         {/* Speaker Notes and Delivery Tutorial */}
-        <div className="h-48 flex bg-dark-secondary">
-          {/* Speaker Notes */}
-          {slide.speaker_notes && (
-            <div className="flex-1 p-4 border-r border-border overflow-y-auto">
-              <h4 className="font-medium text-text-primary mb-2">Speaker Notes</h4>
-              <div className="text-text-secondary text-sm whitespace-pre-wrap">
-                {slide.speaker_notes}
-              </div>
-            </div>
-          )}
+        <div className={`${notesMinimized ? 'h-12' : 'h-48'} flex flex-col bg-dark-secondary transition-all duration-300`}>
+          {/* Notes Header with Toggle */}
+          <div className="flex items-center justify-between p-3 border-t border-border">
+            <h4 className="font-medium text-text-primary text-sm">
+              {(slide.speaker_notes || slide.delivery_tutorial) ? 'Speaker Notes & Delivery Tutorial' : 'No additional notes'}
+            </h4>
+            {(slide.speaker_notes || slide.delivery_tutorial) && (
+              <button
+                onClick={() => setNotesMinimized(!notesMinimized)}
+                className="text-text-secondary hover:text-text-primary transition-colors p-1"
+              >
+                <svg className={`w-4 h-4 transition-transform ${notesMinimized ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+            )}
+          </div>
           
-          {/* Delivery Tutorial */}
-          {slide.delivery_tutorial && (
-            <div className="flex-1 p-4 overflow-y-auto">
-              <h4 className="font-medium text-text-primary mb-2">Delivery Tutorial</h4>
-              <div className="text-text-secondary text-sm whitespace-pre-wrap">
-                {slide.delivery_tutorial}
-              </div>
+          {/* Notes Content */}
+          {!notesMinimized && (slide.speaker_notes || slide.delivery_tutorial) && (
+            <div className="flex-1 flex min-h-0">
+              {/* Speaker Notes */}
+              {slide.speaker_notes && (
+                <div className="flex-1 p-4 border-r border-border overflow-y-auto">
+                  <h4 className="font-medium text-text-primary mb-2 text-sm">Speaker Notes</h4>
+                  <div className="text-text-secondary text-sm whitespace-pre-wrap">
+                    {slide.speaker_notes}
+                  </div>
+                </div>
+              )}
+              
+              {/* Delivery Tutorial */}
+              {slide.delivery_tutorial && (
+                <div className="flex-1 p-4 overflow-y-auto">
+                  <h4 className="font-medium text-text-primary mb-2 text-sm">Delivery Tutorial</h4>
+                  <div className="text-text-secondary text-sm whitespace-pre-wrap">
+                    {slide.delivery_tutorial}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

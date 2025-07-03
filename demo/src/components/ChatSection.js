@@ -72,8 +72,8 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
             key={index}
             className={`max-w-[80%] p-3 rounded-xl break-words ${
               message.role === 'user'
-                ? 'bg-primary text-white ml-auto'
-                : 'bg-border text-text-primary'
+                ? 'bg-blue-600 text-white ml-auto'
+                : 'bg-border text-text-primary mr-auto'
             }`}
           >
             {message.content}
@@ -82,23 +82,25 @@ const ChatSection = ({ projectId, messages, setMessages, loading, setLoading, se
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="p-5 border-t border-border flex gap-3">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
-          disabled={!projectId || loading}
-          className="flex-1 bg-border text-text-primary px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-primary placeholder-text-secondary"
-        />
-        <button
-          onClick={sendMessage}
-          disabled={!projectId || loading || !inputValue.trim()}
-          className="bg-primary text-white px-5 py-3 rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Send
-        </button>
+      <div className="p-5 border-t border-border">
+        <div className="flex gap-3 w-full">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            disabled={!projectId || loading}
+            className="flex-1 min-w-0 bg-border text-text-primary px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-primary placeholder-text-secondary"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!projectId || loading || !inputValue.trim()}
+            className="flex-shrink-0 bg-primary text-white px-5 py-3 rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );
