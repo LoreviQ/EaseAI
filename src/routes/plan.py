@@ -101,15 +101,11 @@ def update_presentation_plan(
     return PresentationPlanResponse.from_domain(plan)
 
 
-class ApprovalResponse(BaseModel):
-    response: str
-
-
-@router.post("/approve", response_model=ApprovalResponse)
+@router.post("/approve", status_code=201)
 def approve_plan(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
-) -> ApprovalResponse:
+) -> str:
     """Approve plan and move to content production"""
     projects_adapter = ProjectsAdapter(db)
     plan_adapter = PresentationPlanAdapter(db)
@@ -139,6 +135,6 @@ def approve_plan(
             "db_session": db,
         }
     )
-    output_state = agent.invoke(initial_state, config=config)
+    agent.invoke(initial_state, config=config)
 
-    return ApprovalResponse(response=output_state["messages"][-1].content)
+    return "Plan approved and content generation started completed"

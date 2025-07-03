@@ -8,18 +8,11 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from src.types.delivery_tutorial import (
-    DeliveryTechnique,
-    DeliveryTutorial,
-    PracticeExercise,
-    TroubleshootingTip,
-)
 from src.types.document import Document, ProcessingStatus
 from src.types.message import Message, MessageType
 from src.types.plan import PresentationPlan
 from src.types.project import Project, ProjectPhase
 from src.types.slides import Slide, Slides
-from src.types.speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
 
 Base = declarative_base()
 
@@ -53,21 +46,8 @@ class ProjectORM(Base):
         cascade="all, delete-orphan",
     )
     slides = relationship(
-        "SlidesORM",
+        "SlideORM",
         back_populates="project",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-    speaker_notes = relationship(
-        "SpeakerNotesORM",
-        back_populates="project",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-    delivery_tutorial = relationship(
-        "DeliveryTutorialORM",
-        back_populates="project",
-        uselist=False,
         cascade="all, delete-orphan",
     )
 
@@ -221,14 +201,19 @@ class PresentationPlanORM(Base):
         )
 
 
-class SlidesORM(Base):
+class SlideORM(Base):
     __tablename__ = "slides"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    slides_data = Column(JSON)
-    template_id = Column(String(100))
-    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
+    title = Column(String(255))
+    description = Column(Text)
+    time_spent_on_slide = Column(Integer)
+    slide_number = Column(Integer)
+    content = Column(Text)
+    speaker_notes = Column(Text)
+    delivery_tutorial = Column(Text)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(
         DateTime,
         default=datetime.now(timezone.utc),
@@ -239,177 +224,27 @@ class SlidesORM(Base):
     project = relationship("ProjectORM", back_populates="slides")
 
     @classmethod
-    def from_domain(cls, slides: Slides) -> "SlidesORM":
-        slides_data = None
-        if slides.slides:
-            slides_data = [slide.model_dump() for slide in slides.slides]
-
+    def from_domain(cls, slide: Slide) -> "SlideORM":
         return cls(
-            id=slides.id,
-            project_id=slides.project_id,
-            slides_data=slides_data,
-            template_id=slides.template_id,
-            generated_at=slides.generated_at,
-            updated_at=slides.updated_at,
+            title=slide.title,
+            description=slide.description,
+            time_spent_on_slide=slide.time_spent_on_slide,
+            slide_number=slide.slide_number,
+            content=slide.content,
+            speaker_notes=slide.speaker_notes,
+            delivery_tutorial=slide.delivery_tutorial,
         )
 
     @property
-    def domain(self) -> Slides:
-        slides_list = None
-        if self.slides_data:
-            slides_list = [Slide(**slide) for slide in self.slides_data]
-
-        return Slides(
-            id=self.id,
-            project_id=self.project_id,
-            slides=slides_list,
-            template_id=self.template_id,
-            generated_at=self.generated_at,
-            updated_at=self.updated_at,
+    def domain(self) -> Slide:
+        return Slide(
+            title=self.title,
+            description=self.description,
+            time_spent_on_slide=self.time_spent_on_slide,
+            slide_number=self.slide_number,
+            content=self.content,
+            speaker_notes=self.speaker_notes,
+            delivery_tutorial=self.delivery_tutorial,
         )
 
 
-class SpeakerNotesORM(Base):
-    __tablename__ = "speaker_notes"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    sections = Column(JSON)
-    talking_points = Column(JSON)
-    q_and_a = Column(JSON)
-    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(
-        DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
-    )
-
-    # Relationships
-    project = relationship("ProjectORM", back_populates="speaker_notes")
-
-    @classmethod
-    def from_domain(cls, speaker_notes: SpeakerNotes) -> "SpeakerNotesORM":
-        sections_data = None
-        if speaker_notes.sections:
-            sections_data = [section.model_dump() for section in speaker_notes.sections]
-
-        q_and_a_data = None
-        if speaker_notes.q_and_a:
-            q_and_a_data = [qa.model_dump() for qa in speaker_notes.q_and_a]
-
-        return cls(
-            id=speaker_notes.id,
-            project_id=speaker_notes.project_id,
-            sections=sections_data,
-            talking_points=speaker_notes.talking_points,
-            q_and_a=q_and_a_data,
-            generated_at=speaker_notes.generated_at,
-            updated_at=speaker_notes.updated_at,
-        )
-
-    @property
-    def domain(self) -> SpeakerNotes:
-        sections = None
-        if self.sections:
-            sections = [SpeakerNoteSection(**section) for section in self.sections]
-
-        q_and_a = None
-        if self.q_and_a:
-            q_and_a = [QandA(**qa) for qa in self.q_and_a]
-
-        return SpeakerNotes(
-            id=self.id,
-            project_id=self.project_id,
-            sections=sections,
-            talking_points=self.talking_points,
-            q_and_a=q_and_a,
-            generated_at=self.generated_at,
-            updated_at=self.updated_at,
-        )
-
-
-class DeliveryTutorialORM(Base):
-    __tablename__ = "delivery_tutorials"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    introduction = Column(Text)
-    preparation_tips = Column(JSON)
-    delivery_techniques = Column(JSON)
-    practice_exercises = Column(JSON)
-    troubleshooting = Column(JSON)
-    generated_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(
-        DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
-    )
-
-    # Relationships
-    project = relationship("ProjectORM", back_populates="delivery_tutorial")
-
-    @classmethod
-    def from_domain(cls, delivery_tutorial: DeliveryTutorial) -> "DeliveryTutorialORM":
-        techniques_data = None
-        if delivery_tutorial.delivery_techniques:
-            techniques_data = [
-                technique.model_dump()
-                for technique in delivery_tutorial.delivery_techniques
-            ]
-
-        exercises_data = None
-        if delivery_tutorial.practice_exercises:
-            exercises_data = [
-                exercise.model_dump()
-                for exercise in delivery_tutorial.practice_exercises
-            ]
-
-        troubleshooting_data = None
-        if delivery_tutorial.troubleshooting:
-            troubleshooting_data = [
-                tip.model_dump() for tip in delivery_tutorial.troubleshooting
-            ]
-
-        return cls(
-            id=delivery_tutorial.id,
-            project_id=delivery_tutorial.project_id,
-            introduction=delivery_tutorial.introduction,
-            preparation_tips=delivery_tutorial.preparation_tips,
-            delivery_techniques=techniques_data,
-            practice_exercises=exercises_data,
-            troubleshooting=troubleshooting_data,
-            generated_at=delivery_tutorial.generated_at,
-            updated_at=delivery_tutorial.updated_at,
-        )
-
-    @property
-    def domain(self) -> DeliveryTutorial:
-        techniques = None
-        if self.delivery_techniques:
-            techniques = [
-                DeliveryTechnique(**technique) for technique in self.delivery_techniques
-            ]
-
-        exercises = None
-        if self.practice_exercises:
-            exercises = [
-                PracticeExercise(**exercise) for exercise in self.practice_exercises
-            ]
-
-        troubleshooting = None
-        if self.troubleshooting:
-            troubleshooting = [
-                TroubleshootingTip(**tip) for tip in self.troubleshooting
-            ]
-
-        return DeliveryTutorial(
-            id=self.id,
-            project_id=self.project_id,
-            introduction=self.introduction,
-            preparation_tips=self.preparation_tips,
-            delivery_techniques=techniques,
-            practice_exercises=exercises,
-            troubleshooting=troubleshooting,
-            generated_at=self.generated_at,
-            updated_at=self.updated_at,
-        )

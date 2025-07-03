@@ -1,12 +1,9 @@
-import threading
 from typing import Dict, Optional
 
 from langgraph.graph import MessagesState
 from typing_extensions import Annotated
 
 from src.types import PresentationPlan, ProjectPhase, Slide, update_plan, update_slides
-
-_thread_local = threading.local()
 
 
 class InputState(MessagesState):

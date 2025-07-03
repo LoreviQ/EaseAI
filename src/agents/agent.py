@@ -11,6 +11,7 @@ from .nodes import (
     planner,
     slide,
     speaker_notes,
+    write_results,
 )
 from .state import OverallState
 
@@ -40,6 +41,7 @@ builder.add_conditional_edges(START, phase_router)
 # Planning phase
 builder.add_node("planner", planner)
 builder.add_node("call_tool", call_tool)
+
 builder.add_conditional_edges("planner", response_router)
 builder.add_edge("call_tool", "planner")
 
@@ -48,9 +50,12 @@ builder.add_node("outline", outline)
 builder.add_node("slide", slide)
 builder.add_node("speaker_notes", speaker_notes)
 builder.add_node("delivery_tutorial", delivery_tutorial)
+builder.add_node("write_results", write_results)
+
 builder.add_edge("outline", "slide")
 builder.add_edge("slide", "speaker_notes")
 builder.add_edge("speaker_notes", "delivery_tutorial")
-builder.add_edge("delivery_tutorial", END)
+builder.add_edge("delivery_tutorial", "write_results")
+builder.add_edge("write_results", END)
 
 agent = builder.compile()
