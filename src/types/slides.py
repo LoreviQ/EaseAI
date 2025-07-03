@@ -5,14 +5,11 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class SlideOutline(BaseModel):
+class Slide(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    time_spent_on_slide: Optional[int] = None
     slide_number: Optional[int] = None
-    title: Optional[str]
-    description: Optional[str]
-    time_spent_on_slide: Optional[int]
-
-
-class Slide(SlideOutline):
     content: Optional[str] = None
     speaker_notes: Optional[str] = None
     delivery_tutorial: Optional[str] = None

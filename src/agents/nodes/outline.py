@@ -5,13 +5,21 @@ from langchain_core.messages import SystemMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from src.types import Slide, SlideOutline
+from src.types import Slide
 
 from ..state import InputState, OverallState
 
 logger = logging.getLogger("easeai")
+
+
+class SlideOutline(BaseModel):
+    title: str
+    description: str
+    time_spent_on_slide: int = Field(
+        description="The time in minutes spent on this slide."
+    )
 
 
 class OutlineResponse(BaseModel):
@@ -59,14 +67,16 @@ def outline(state: InputState, config: RunnableConfig) -> OverallState:
 
     # Convert outlines to Slide objects and create dictionary
     slides_dict = {}
+    slide_number = 1
     for outline in response.slides:
         slide = Slide(
-            slide_number=outline.slide_number,
+            slide_number=slide_number,
             title=outline.title,
             description=outline.description,
             time_spent_on_slide=outline.time_spent_on_slide,
         )
-        slides_dict[outline.slide_number] = slide
+        slides_dict[slide_number] = slide
+        slide_number += 1
 
     return {
         "slides": slides_dict,

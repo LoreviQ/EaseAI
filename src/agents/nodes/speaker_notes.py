@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from src.types import Slide
 
-from ..state import InputState, OverallState
+from ..state import OverallState
 
 logger = logging.getLogger("easeai")
 
@@ -68,7 +68,7 @@ step_instructions = (
 
 
 # node
-def speaker_notes(state: InputState, config: RunnableConfig) -> OverallState:
+def speaker_notes(state: OverallState, config: RunnableConfig) -> OverallState:
     slides = state.get("slides", {})
     current_slides = "\n".join(str(slide) for slide in slides.values())
     system = speaker_notes_prompt.format(
