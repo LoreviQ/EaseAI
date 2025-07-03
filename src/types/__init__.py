@@ -8,7 +8,7 @@ from .document import Document, ProcessingStatus
 from .message import Message, MessageType
 from .plan import PresentationPlan, update_plan
 from .project import Project, ProjectPhase
-from .slides import Slide, SlideOutline, Slides
+from .slides import Slide, SlideOutline, Slides, update_slides
 from .speaker_notes import QandA, SpeakerNotes, SpeakerNoteSection
 
 __all__ = [
@@ -29,5 +29,6 @@ __all__ = [
     "Slides",
     "SpeakerNoteSection",
     "SpeakerNotes",
+    "update_slides",
     "TroubleshootingTip",
 ]

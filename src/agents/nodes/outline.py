@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel
 
-from src.types import SlideOutline
+from src.types import Slide, SlideOutline
 
 from ..state import InputState, OverallState
 
@@ -57,6 +57,17 @@ def outline(state: InputState, config: RunnableConfig) -> OverallState:
     )
     response: OutlineResponse = structured_llm.invoke(messages, config)
 
+    # Convert outlines to Slide objects and create dictionary
+    slides_dict = {}
+    for outline in response.slides:
+        slide = Slide(
+            slide_number=outline.slide_number,
+            title=outline.title,
+            description=outline.description,
+            time_spent_on_slide=outline.time_spent_on_slide,
+        )
+        slides_dict[outline.slide_number] = slide
+
     return {
-        "outlines": response.slides,
+        "slides": slides_dict,
     }
