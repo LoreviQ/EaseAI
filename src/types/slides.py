@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -12,13 +12,8 @@ class SlideOutline(BaseModel):
     time_spent_on_slide: int
 
 
-class Slide(BaseModel):
-    slide_number: int
-    title: str
-    content: Dict
-    layout: Optional[str]
-    transitions: Optional[Dict]
-    speaker_cues: Optional[List[str]]
+class Slide(SlideOutline):
+    content: str
 
 
 class Slides(BaseModel):

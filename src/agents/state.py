@@ -5,7 +5,7 @@ from typing import Any, Iterator, List, Optional
 from langgraph.graph import MessagesState
 from typing_extensions import Annotated
 
-from src.types import PresentationPlan, ProjectPhase, SlideOutline, update_plan
+from src.types import PresentationPlan, ProjectPhase, Slide, update_plan
 
 _thread_local = threading.local()
 
@@ -18,7 +18,7 @@ class InputState(MessagesState):
 class OverallState(MessagesState):
     project_phase: ProjectPhase
     presentation_plan: Annotated[Optional[PresentationPlan], update_plan]
-    outlines: Optional[List[SlideOutline]]
+    outlines: Optional[List[Slide]]
 
 
 def get_state() -> Optional[OverallState]:
