@@ -1,18 +1,24 @@
 import threading
 from contextlib import contextmanager
-from typing import Any, Iterator, Optional
+from typing import Any, Iterator, List, Optional
 
 from langgraph.graph import MessagesState
 from typing_extensions import Annotated
 
-from src.types import PresentationPlan, ProjectPhase, update_plan
+from src.types import PresentationPlan, ProjectPhase, SlideOutline, update_plan
 
 _thread_local = threading.local()
+
+
+class InputState(MessagesState):
+    project_phase: ProjectPhase
+    presentation_plan: Annotated[Optional[PresentationPlan], update_plan]
 
 
 class OverallState(MessagesState):
     project_phase: ProjectPhase
     presentation_plan: Annotated[Optional[PresentationPlan], update_plan]
+    outlines: Optional[List[SlideOutline]]
 
 
 def get_state() -> Optional[OverallState]:

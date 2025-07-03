@@ -13,11 +13,24 @@ from src.types import PresentationPlan
 from ..state import OverallState
 
 logger = logging.getLogger("easeai")
-gemini_llm = ChatGoogleGenerativeAI(
+
+
+class PlannerResponse(BaseModel):
+    response: str = Field(description="The response from to the user")
+    presentation_plan: Optional[PresentationPlan] = Field(
+        description="The presentation plan patch. Only include changes you wish to make to the current plan"  # noqa: E501
+    )
+
+
+# llm
+llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.7,
     max_retries=2,
 )
+structured_planner = llm.with_structured_output(PlannerResponse)
+
+# prompts
 planner_prompt = PromptTemplate(
     template="""You are EaseAI, an AI assistant helping users create presentations.
 
@@ -32,16 +45,6 @@ Return the plan edits as a JSON object along with a response to the user.
         "current_plan",
     ],
 )
-
-
-class PlannerResponse(BaseModel):
-    response: str = Field(description="The response from to the user")
-    presentation_plan: Optional[PresentationPlan] = Field(
-        description="The presentation plan patch. Only include changes you wish to make to the current plan"  # noqa: E501
-    )
-
-
-structured_planner = gemini_llm.with_structured_output(PlannerResponse)
 
 
 def planner(state: OverallState, config: RunnableConfig) -> OverallState:

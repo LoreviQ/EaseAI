@@ -5,6 +5,13 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class SlideOutline(BaseModel):
+    slide_number: int
+    title: str
+    description: str
+    time_spent_on_slide: int
+
+
 class Slide(BaseModel):
     slide_number: int
     title: str
