@@ -1,10 +1,40 @@
-from typing import Optional
+import threading
+from contextlib import contextmanager
+from typing import Any, Iterator, Optional
 
 from langgraph.graph import MessagesState
 
 from src.types import PresentationPlan, ProjectPhase
 
+_thread_local = threading.local()
+
 
 class OverallState(MessagesState):
     project_phase: ProjectPhase
     presentation_plan: Optional[PresentationPlan] = None
+
+
+def get_state() -> Optional[OverallState]:
+    return getattr(_thread_local, "state", None)
+
+
+def get_changes() -> dict[str, Any]:
+    return getattr(_thread_local, "state_changes", {})
+
+
+def make_change(key: str, value: Any) -> None:
+    _thread_local.state_changes[key] = value
+
+
+@contextmanager
+def state_context(state: OverallState) -> Iterator[None]:
+    old_state = getattr(_thread_local, "state", None)
+    _thread_local.state = state
+    _thread_local.state_changes = {}
+    try:
+        yield
+    finally:
+        if old_state is None:
+            delattr(_thread_local, "state")
+        else:
+            _thread_local.state = old_state
